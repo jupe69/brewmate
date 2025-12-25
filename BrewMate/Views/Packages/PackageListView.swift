@@ -6,6 +6,7 @@ struct PackageListView: View {
     @Environment(\.brewService) private var brewService
     @State private var isRefreshing = false
     @State private var showUninstallConfirmation = false
+    @State private var showBulkOperationsPaywall = false
 
     /// Pagination state for large lists
     @State private var visibleItemCount: Int = 50
@@ -44,7 +45,11 @@ struct PackageListView: View {
             if canShowSelectionMode {
                 ToolbarItem(placement: .automatic) {
                     Button {
-                        appState.toggleSelectionMode()
+                        if LicenseManager.shared.isPro {
+                            appState.toggleSelectionMode()
+                        } else {
+                            showBulkOperationsPaywall = true
+                        }
                     } label: {
                         Label(
                             appState.isSelectionMode ? "Done" : "Select",
@@ -52,9 +57,12 @@ struct PackageListView: View {
                         )
                     }
                     .keyboardShortcut("s", modifiers: [.command, .shift])
-                    .help("Toggle selection mode (Cmd+Shift+S)")
+                    .help(LicenseManager.shared.isPro ? "Toggle selection mode (Cmd+Shift+S)" : "Pro feature: Bulk operations")
                 }
             }
+        }
+        .sheet(isPresented: $showBulkOperationsPaywall) {
+            PaywallView(feature: .bulkOperations)
         }
         .onKeyPress(.escape) {
             if appState.isSelectionMode {

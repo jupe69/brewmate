@@ -19,6 +19,8 @@ struct PackageDetailView: View {
     @State private var appPath: String?
     @State private var isQuarantined: Bool?
     @State private var showRemoveQuarantineConfirmation = false
+    @State private var showFavoritesPaywall = false
+    @State private var showPinningPaywall = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -102,6 +104,12 @@ struct PackageDetailView: View {
         .task {
             await loadDetailedInfo()
         }
+        .sheet(isPresented: $showFavoritesPaywall) {
+            PaywallView(feature: .favorites)
+        }
+        .sheet(isPresented: $showPinningPaywall) {
+            PaywallView(feature: .pinning)
+        }
     }
 
     // MARK: - Sections
@@ -140,16 +148,22 @@ struct PackageDetailView: View {
 
             Spacer()
 
-            // Favorite button
+            // Favorite button (Pro feature)
             Button {
-                appState.userDataManager.toggleFavorite(package.packageName)
+                if LicenseManager.shared.isPro {
+                    appState.userDataManager.toggleFavorite(package.packageName)
+                } else {
+                    showFavoritesPaywall = true
+                }
             } label: {
                 Image(systemName: appState.userDataManager.isFavorite(package.packageName) ? "heart.fill" : "heart")
                     .font(.title2)
                     .foregroundStyle(appState.userDataManager.isFavorite(package.packageName) ? .red : .secondary)
             }
             .buttonStyle(.plain)
-            .help(appState.userDataManager.isFavorite(package.packageName) ? "Remove from favorites" : "Add to favorites")
+            .help(LicenseManager.shared.isPro
+                ? (appState.userDataManager.isFavorite(package.packageName) ? "Remove from favorites" : "Add to favorites")
+                : "Pro feature: Add to favorites")
 
             if isOutdated {
                 updateBadge
@@ -268,8 +282,18 @@ struct PackageDetailView: View {
             HStack {
                 Text("Notes")
                     .font(.headline)
+                if !LicenseManager.shared.isPro {
+                    Text("PRO")
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.orange)
+                        .foregroundStyle(.white)
+                        .clipShape(Capsule())
+                }
                 Spacer()
-                if appState.userDataManager.hasNote(for: package.packageName) {
+                if LicenseManager.shared.isPro && appState.userDataManager.hasNote(for: package.packageName) {
                     Button("Clear") {
                         appState.userDataManager.removeNote(for: package.packageName)
                     }
@@ -279,20 +303,38 @@ struct PackageDetailView: View {
                 }
             }
 
-            TextEditor(text: Binding(
-                get: { appState.userDataManager.getNote(for: package.packageName) ?? "" },
-                set: { appState.userDataManager.setNote($0, for: package.packageName) }
-            ))
-            .font(.body)
-            .frame(minHeight: 60, maxHeight: 100)
-            .scrollContentBackground(.hidden)
-            .padding(8)
-            .background(Color(nsColor: .textBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-            )
+            if LicenseManager.shared.isPro {
+                TextEditor(text: Binding(
+                    get: { appState.userDataManager.getNote(for: package.packageName) ?? "" },
+                    set: { appState.userDataManager.setNote($0, for: package.packageName) }
+                ))
+                .font(.body)
+                .frame(minHeight: 60, maxHeight: 100)
+                .scrollContentBackground(.hidden)
+                .padding(8)
+                .background(Color(nsColor: .textBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+                )
+            } else {
+                Button {
+                    showFavoritesPaywall = true
+                } label: {
+                    HStack {
+                        Image(systemName: "lock.fill")
+                        Text("Upgrade to add notes")
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 60)
+                    .background(Color(nsColor: .controlBackgroundColor))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 
@@ -314,11 +356,15 @@ struct PackageDetailView: View {
                     .disabled(isUninstalling || appState.isOperationInProgress)
                 }
 
-                // Pin/Unpin button (only for formulae)
+                // Pin/Unpin button (only for formulae, Pro feature)
                 if package.isFormula {
                     Button {
-                        Task {
-                            await togglePin()
+                        if LicenseManager.shared.isPro {
+                            Task {
+                                await togglePin()
+                            }
+                        } else {
+                            showPinningPaywall = true
                         }
                     } label: {
                         if isPinning {

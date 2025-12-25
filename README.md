@@ -8,25 +8,26 @@ A beautiful, native macOS GUI for [Homebrew](https://brew.sh) package management
 
 ## Pricing
 
-BrewMate offers a **free version** with full core functionality, plus a **Pro upgrade** for power users.
+BrewMate offers a **free version** with essential functionality, plus a **Pro upgrade** for power users.
 
 | | Free | Pro |
 |---|:---:|:---:|
 | Browse & search packages | ✓ | ✓ |
 | Install, uninstall, upgrade | ✓ | ✓ |
-| Bulk operations | ✓ | ✓ |
 | Services management | ✓ | ✓ |
-| Taps management | ✓ | ✓ |
-| Favorites, notes, history | ✓ | ✓ |
 | Diagnostics (brew doctor) | ✓ | ✓ |
-| Quarantine management | ✓ | ✓ |
-| Pin packages | ✓ | ✓ |
+| **Bulk operations** | | ✓ |
+| **Favorites & notes** | | ✓ |
+| **Installation history** | | ✓ |
+| **Taps management** | | ✓ |
+| **Quarantine management** | | ✓ |
+| **Pin packages** | | ✓ |
 | **Menu bar integration** | | ✓ |
 | **Background update checks** | | ✓ |
 | **Auto-upgrade packages** | | ✓ |
 | **Brewfile import/export** | | ✓ |
 | **Cleanup tools** | | ✓ |
-| **Price** | Free | $9.99 (one-time) |
+| **Price** | Free | $4.99 (one-time) |
 
 **14-day free trial** of all Pro features included.
 
@@ -36,45 +37,52 @@ BrewMate offers a **free version** with full core functionality, plus a **Pro up
 
 ## Features
 
-### Package Management
+### Free Features
+
+#### Package Management
 - **Browse Installed Packages** - View all installed formulae and casks in an organized list
 - **Search & Install** - Search Homebrew's entire catalog and install packages with one click
 - **Uninstall Packages** - Remove packages with confirmation dialogs
 - **View Package Details** - See descriptions, versions, dependencies, and homepage links
-- **Bulk Operations** - Select multiple packages to install, uninstall, or upgrade at once
 
-### Updates & Upgrades
+#### Updates & Upgrades
 - **Outdated Package Detection** - Instantly see which packages have updates available
 - **One-Click Updates** - Update individual packages or upgrade everything at once
 - **Live Progress Output** - Watch installation and upgrade progress in real-time
-- **Pin Packages** - Prevent specific packages from being auto-upgraded
 
-### User Data
-- **Favorites** - Mark packages as favorites for quick access
-- **Package Notes** - Add personal notes to any package
-- **Installation History** - Track all install/uninstall/upgrade actions
-
-### Services Management
+#### Services Management
 - **View All Services** - See all Homebrew-managed background services
 - **Service Status** - Color-coded status indicators (running, stopped, error)
 - **Start/Stop/Restart** - Control services directly from the app
 
-### Taps (Repositories)
-- **View Installed Taps** - See all configured Homebrew repositories
-- **Add/Remove Taps** - Manage third-party taps with ease
-- **Tap Details** - View formula and cask counts per tap
-
-### Diagnostics
+#### Diagnostics
 - **Brew Doctor** - Run system health checks with streaming output
 - **Disk Usage** - View space used by cache, Cellar, and Caskroom
 - **Analytics Control** - Enable/disable Homebrew analytics
 
-### Quarantine Management
+### Pro Features
+
+#### Bulk Operations
+- **Multi-Select** - Select multiple packages at once
+- **Bulk Install/Uninstall/Upgrade** - Manage many packages in a single operation
+
+#### User Data
+- **Favorites** - Mark packages as favorites for quick access
+- **Package Notes** - Add personal notes to any package
+- **Installation History** - Track all install/uninstall/upgrade actions
+
+#### Taps (Repositories)
+- **View Installed Taps** - See all configured Homebrew repositories
+- **Add/Remove Taps** - Manage third-party taps with ease
+- **Tap Details** - View formula and cask counts per tap
+
+#### Quarantine Management
 - **Scan Applications** - Find apps with macOS quarantine attributes
 - **Remove Quarantine** - Clear quarantine flags from trusted applications
 - **Match to Casks** - Automatically match apps to their Homebrew casks
 
-### Pro Features
+#### Package Pinning
+- **Pin Packages** - Prevent specific packages from being auto-upgraded
 
 #### Brewfile Support
 - **Export Brewfile** - Generate a Brewfile from your installed packages

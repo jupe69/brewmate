@@ -5,6 +5,16 @@ struct HistoryView: View {
     @Bindable var appState: AppState
 
     var body: some View {
+        Group {
+            if LicenseManager.shared.isPro {
+                historyContent
+            } else {
+                InlinePaywallView(feature: .history)
+            }
+        }
+    }
+
+    private var historyContent: some View {
         VStack(spacing: 0) {
             // Header
             HStack {

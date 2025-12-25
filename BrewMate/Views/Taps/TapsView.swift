@@ -14,6 +14,16 @@ struct TapsView: View {
     @State private var tapToRemove: TapInfo?
 
     var body: some View {
+        Group {
+            if LicenseManager.shared.isPro {
+                tapsContent
+            } else {
+                InlinePaywallView(feature: .taps)
+            }
+        }
+    }
+
+    private var tapsContent: some View {
         HSplitView {
             // Taps list
             VStack(spacing: 0) {

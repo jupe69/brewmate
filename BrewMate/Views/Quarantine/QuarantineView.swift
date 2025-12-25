@@ -10,6 +10,16 @@ struct QuarantineView: View {
     @State private var appToRemoveQuarantine: QuarantinedApp?
 
     var body: some View {
+        Group {
+            if LicenseManager.shared.isPro {
+                quarantineContent
+            } else {
+                InlinePaywallView(feature: .quarantine)
+            }
+        }
+    }
+
+    private var quarantineContent: some View {
         VStack(spacing: 0) {
             // Info banner
             infoBanner

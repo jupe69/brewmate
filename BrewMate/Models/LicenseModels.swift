@@ -185,6 +185,12 @@ enum LicenseError: LocalizedError {
 
 /// Features that require a Pro license
 enum ProFeature: String, CaseIterable, Identifiable {
+    case bulkOperations = "Bulk Operations"
+    case favorites = "Favorites & Notes"
+    case history = "Installation History"
+    case taps = "Taps Management"
+    case quarantine = "Quarantine Management"
+    case pinning = "Package Pinning"
     case menuBar = "Menu Bar Integration"
     case backgroundUpdates = "Background Updates"
     case brewfile = "Brewfile Import/Export"
@@ -196,6 +202,18 @@ enum ProFeature: String, CaseIterable, Identifiable {
 
     var description: String {
         switch self {
+        case .bulkOperations:
+            return "Select and manage multiple packages at once for faster workflows."
+        case .favorites:
+            return "Mark packages as favorites and add personal notes for quick reference."
+        case .history:
+            return "Track all your install, uninstall, and upgrade actions over time."
+        case .taps:
+            return "Add and remove third-party Homebrew repositories."
+        case .quarantine:
+            return "Manage macOS quarantine flags on installed applications."
+        case .pinning:
+            return "Prevent specific packages from being upgraded automatically."
         case .menuBar:
             return "Quick access from your menu bar with update badges and one-click actions."
         case .backgroundUpdates:
@@ -209,6 +227,12 @@ enum ProFeature: String, CaseIterable, Identifiable {
 
     var systemImage: String {
         switch self {
+        case .bulkOperations: return "checklist"
+        case .favorites: return "star"
+        case .history: return "clock.arrow.circlepath"
+        case .taps: return "spigot"
+        case .quarantine: return "shield"
+        case .pinning: return "pin"
         case .menuBar: return "menubar.rectangle"
         case .backgroundUpdates: return "bell.badge"
         case .brewfile: return "doc.text"

@@ -49,7 +49,7 @@ struct PaywallView: View {
 
             // Price
             VStack(spacing: 4) {
-                Text("$9.99")
+                Text("$4.99")
                     .font(.system(size: 36, weight: .bold))
                 Text("One-time purchase")
                     .font(.caption)
