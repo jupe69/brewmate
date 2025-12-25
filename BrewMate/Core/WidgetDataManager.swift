@@ -34,6 +34,14 @@ final class WidgetDataManager {
             return
         }
 
+        // Ensure the container directory exists
+        do {
+            try FileManager.default.createDirectory(at: containerURL, withIntermediateDirectories: true)
+        } catch {
+            // Silently fail - widget data is optional
+            return
+        }
+
         let fileURL = containerURL.appendingPathComponent(dataFileName)
 
         do {
@@ -43,7 +51,7 @@ final class WidgetDataManager {
             // Reload all widget timelines (requires WidgetKit import when widget is enabled)
             // WidgetCenter.shared.reloadAllTimelines()
         } catch {
-            print("Failed to write widget data: \(error)")
+            // Silently fail - widget data is optional
         }
     }
 

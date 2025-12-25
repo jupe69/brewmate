@@ -156,6 +156,8 @@ struct InlinePaywallView: View {
 
     var body: some View {
         VStack(spacing: 16) {
+            Spacer()
+
             Image(systemName: "lock.fill")
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
@@ -167,14 +169,18 @@ struct InlinePaywallView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+                .frame(maxWidth: 300)
 
             Button("Upgrade to Pro") {
                 showFullPaywall = true
             }
             .buttonStyle(.borderedProminent)
+
+            Spacer()
         }
-        .padding(40)
+        .frame(minWidth: 300, minHeight: 200)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(40)
         .sheet(isPresented: $showFullPaywall) {
             PaywallView(feature: feature)
         }

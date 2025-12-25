@@ -130,7 +130,7 @@ struct BrewfileView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             } else if brewfileContent.isEmpty {
                 VStack(spacing: 8) {
-                    Image(systemName: "doc.text.slash")
+                    Image(systemName: "doc.text")
                         .font(.largeTitle)
                         .foregroundStyle(.tertiary)
 
