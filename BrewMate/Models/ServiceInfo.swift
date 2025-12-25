@@ -91,7 +91,7 @@ enum ServiceAction: String, CaseIterable {
 }
 
 /// Represents an outdated package that can be upgraded
-struct OutdatedPackage: Identifiable, Hashable {
+struct OutdatedPackage: Identifiable, Hashable, Codable {
     let name: String
     let installedVersion: String
     let currentVersion: String

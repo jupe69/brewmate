@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents a Homebrew formula (command-line package)
-struct Formula: Identifiable, Hashable {
+struct Formula: Identifiable, Hashable, Codable {
     let name: String
     let fullName: String
     let version: String

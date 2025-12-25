@@ -15,7 +15,16 @@ struct ContentView: View {
             if !hasCheckedBrew {
                 LoadingView(message: "Checking Homebrew installation...")
             } else if !appState.isBrewInstalled {
-                BrewNotInstalledView()
+                OnboardingView {
+                    // Re-check installation after onboarding completes
+                    Task {
+                        hasCheckedBrew = false
+                        await checkBrewInstallation()
+                        if appState.isBrewInstalled {
+                            await loadInitialData()
+                        }
+                    }
+                }
             } else {
                 mainContent
             }
@@ -197,16 +206,54 @@ struct ContentView: View {
 
         appState.isLoading = true
 
+        // Try to load from cache first for faster startup
+        let cache = PackageCache.shared
+        if let cachedFormulae = await cache.getCachedFormulae(),
+           let cachedCasks = await cache.getCachedCasks() {
+            appState.installedFormulae = cachedFormulae
+            appState.installedCasks = cachedCasks
+
+            // Load outdated from cache too if available
+            if let cachedOutdated = await cache.getCachedOutdated() {
+                appState.outdatedPackages = cachedOutdated
+            }
+
+            appState.isLoading = false
+
+            // Refresh in background to get latest data
+            Task {
+                await refreshFromSource(updateCache: true)
+            }
+        } else {
+            // No cache, load from source
+            await refreshFromSource(updateCache: true)
+            appState.isLoading = false
+        }
+    }
+
+    private func refreshFromSource(updateCache: Bool) async {
         do {
             async let formulae = brewService.getInstalledFormulae()
             async let casks = brewService.getInstalledCasks()
             async let outdated = brewService.getOutdated()
             async let pinned = brewService.getPinnedPackages()
 
-            appState.installedFormulae = try await formulae
-            appState.installedCasks = try await casks
-            appState.outdatedPackages = try await outdated
+            let loadedFormulae = try await formulae
+            let loadedCasks = try await casks
+            let loadedOutdated = try await outdated
+
+            appState.installedFormulae = loadedFormulae
+            appState.installedCasks = loadedCasks
+            appState.outdatedPackages = loadedOutdated
             appState.pinnedPackages = Set(try await pinned)
+
+            // Update cache
+            if updateCache {
+                let cache = PackageCache.shared
+                await cache.cacheFormulae(loadedFormulae)
+                await cache.cacheCasks(loadedCasks)
+                await cache.cacheOutdated(loadedOutdated)
+            }
 
             // Notify menu bar of updates
             NotificationCenter.default.post(
@@ -214,11 +261,12 @@ struct ContentView: View {
                 object: nil,
                 userInfo: ["outdatedPackages": appState.outdatedPackages]
             )
+
+            // Update widget data
+            WidgetDataManager.shared.updateWidgetData(outdatedPackages: appState.outdatedPackages)
         } catch {
             appState.setError(.commandFailed(error.localizedDescription))
         }
-
-        appState.isLoading = false
     }
 
     private func refresh() async {
@@ -226,17 +274,11 @@ struct ContentView: View {
 
         appState.isRefreshing = true
 
+        // Invalidate cache and refresh from source
+        await PackageCache.shared.invalidateAll()
+        await refreshFromSource(updateCache: true)
+
         do {
-            async let formulae = brewService.getInstalledFormulae()
-            async let casks = brewService.getInstalledCasks()
-            async let outdated = brewService.getOutdated()
-            async let pinned = brewService.getPinnedPackages()
-
-            appState.installedFormulae = try await formulae
-            appState.installedCasks = try await casks
-            appState.outdatedPackages = try await outdated
-            appState.pinnedPackages = Set(try await pinned)
-
             if appState.selectedSection == .services {
                 appState.services = try await brewService.getServices()
             }
@@ -244,13 +286,6 @@ struct ContentView: View {
             if appState.selectedSection == .taps {
                 appState.taps = try await brewService.getTaps()
             }
-
-            // Notify menu bar of updates
-            NotificationCenter.default.post(
-                name: .packagesDidUpdate,
-                object: nil,
-                userInfo: ["outdatedPackages": appState.outdatedPackages]
-            )
         } catch {
             appState.setError(.commandFailed(error.localizedDescription))
         }

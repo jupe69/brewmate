@@ -77,6 +77,25 @@ A beautiful, native macOS GUI for [Homebrew](https://brew.sh) package management
 - **Contextual Empty States** - Helpful messages when lists are empty
 - **Enhanced Error Handling** - Clear error messages with recovery suggestions
 
+### First-Run Experience
+- **Guided Onboarding** - Step-by-step wizard for new users
+- **Homebrew Installation Guide** - Clear instructions with copy-to-clipboard command
+- **Quick Launch Terminal** - One-click button to open Terminal for installation
+- **Installation Check** - Verify Homebrew installation before proceeding
+
+### Performance
+- **Package Caching** - Cache package data locally for faster startup
+- **Background Refresh** - Update cache silently after displaying cached data
+- **Automatic Cache Invalidation** - Smart cache expiry (5 minutes)
+- **Lazy Loading** - Large package lists load incrementally for smooth scrolling
+- **Auto-Pagination** - Automatically loads more items as you scroll
+
+### Widget Support (Requires Code Signing)
+- **Desktop Widget** - macOS widget showing outdated package count
+- **Multiple Sizes** - Small, medium, and large widget variants
+- **Live Updates** - Widget refreshes when package status changes
+- **Quick Access** - Click widget to open BrewMate
+
 ## Requirements
 
 - **macOS 14.0** (Sonoma) or later

@@ -7,6 +7,10 @@ struct PackageListView: View {
     @State private var isRefreshing = false
     @State private var showUninstallConfirmation = false
 
+    /// Pagination state for large lists
+    @State private var visibleItemCount: Int = 50
+    private let pageSize: Int = 50
+
     var body: some View {
         Group {
             switch appState.selectedSection {
@@ -78,6 +82,19 @@ struct PackageListView: View {
 
     // MARK: - Package List
 
+    /// Visible packages with pagination applied
+    private var visiblePackages: [Package] {
+        let allPackages = appState.filteredPackages
+        if allPackages.count <= visibleItemCount {
+            return allPackages
+        }
+        return Array(allPackages.prefix(visibleItemCount))
+    }
+
+    private var hasMorePackages: Bool {
+        appState.filteredPackages.count > visibleItemCount
+    }
+
     private var packagesList: some View {
         Group {
             if appState.isLoading {
@@ -98,22 +115,49 @@ struct PackageListView: View {
                 }
             } else {
                 ZStack(alignment: .bottom) {
-                    List(appState.filteredPackages, selection: $appState.selectedPackage) { package in
-                        PackageRowView(
-                            package: package,
-                            isOutdated: isPackageOutdated(package),
-                            isPinned: isPackagePinned(package),
-                            isSelectionMode: appState.isSelectionMode,
-                            isSelected: appState.selectedPackages.contains(package),
-                            onToggleSelection: {
-                                appState.togglePackageSelection(package)
-                            },
-                            appState: appState
-                        )
-                        .tag(package)
-                        .onTapGesture {
-                            if appState.isSelectionMode {
-                                appState.togglePackageSelection(package)
+                    List(selection: $appState.selectedPackage) {
+                        ForEach(visiblePackages) { package in
+                            PackageRowView(
+                                package: package,
+                                isOutdated: isPackageOutdated(package),
+                                isPinned: isPackagePinned(package),
+                                isSelectionMode: appState.isSelectionMode,
+                                isSelected: appState.selectedPackages.contains(package),
+                                onToggleSelection: {
+                                    appState.togglePackageSelection(package)
+                                },
+                                appState: appState
+                            )
+                            .tag(package)
+                            .onTapGesture {
+                                if appState.isSelectionMode {
+                                    appState.togglePackageSelection(package)
+                                }
+                            }
+                        }
+
+                        // Load more trigger
+                        if hasMorePackages {
+                            HStack {
+                                Spacer()
+                                Button {
+                                    loadMorePackages()
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Text("Load more")
+                                        Text("(\(appState.filteredPackages.count - visibleItemCount) remaining)")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .font(.subheadline)
+                                }
+                                .buttonStyle(.bordered)
+                                Spacer()
+                            }
+                            .padding(.vertical, 8)
+                            .listRowSeparator(.hidden)
+                            .onAppear {
+                                // Auto-load more when scrolling near the bottom
+                                loadMorePackages()
                             }
                         }
                     }
@@ -127,6 +171,21 @@ struct PackageListView: View {
                 .animation(.default, value: appState.isSelectionMode)
                 .animation(.default, value: appState.selectedPackages.count)
             }
+        }
+        .onChange(of: appState.selectedSection) { _, _ in
+            // Reset pagination when section changes
+            visibleItemCount = pageSize
+        }
+        .onChange(of: appState.searchText) { _, _ in
+            // Reset pagination when search changes
+            visibleItemCount = pageSize
+        }
+    }
+
+    private func loadMorePackages() {
+        let remaining = appState.filteredPackages.count - visibleItemCount
+        if remaining > 0 {
+            visibleItemCount += min(pageSize, remaining)
         }
     }
 
