@@ -320,22 +320,20 @@ struct PackageDetailView: View {
                         .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
                 )
             } else {
-                Button {
-                    showFavoritesPaywall = true
-                } label: {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "lock.fill")
-                        Text("Upgrade to add notes")
-                        Spacer()
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .frame(height: 60)
-                    .background(Color(nsColor: .controlBackgroundColor))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                HStack(spacing: 8) {
+                    Image(systemName: "lock.fill")
+                    Text("Upgrade to Pro to add notes")
                 }
-                .buttonStyle(.plain)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .padding()
+                .frame(height: 60)
+                .frame(minWidth: 200)
+                .background(Color(nsColor: .controlBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .onTapGesture {
+                    showFavoritesPaywall = true
+                }
             }
         }
     }
