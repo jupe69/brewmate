@@ -41,11 +41,16 @@ A beautiful, native macOS GUI for [Homebrew](https://brew.sh) package management
 - **Import Brewfile** - Install packages from an existing Brewfile
 - **Descriptions Included** - Exported Brewfiles include package descriptions as comments
 
-### Diagnostics & Maintenance
+### Diagnostics
 - **Brew Doctor** - Run system health checks with streaming output
 - **Disk Usage** - View space used by cache, Cellar, and Caskroom
-- **Cache Cleanup** - Clear old downloads and free up disk space
 - **Analytics Control** - Enable/disable Homebrew analytics
+
+### Cleanup
+- **Disk Usage Overview** - Visual cards showing cache, Cellar, and Caskroom sizes
+- **Cleanup Preview** - Scan and preview what will be removed before cleaning
+- **Standard Cleanup** - Remove old package versions and outdated downloads
+- **Deep Cleanup** - Clear all cached downloads for maximum space recovery
 
 ### Quarantine Management
 - **Scan Applications** - Find apps with macOS quarantine attributes
