@@ -560,11 +560,12 @@ struct FlowLayout: Layout {
     }
 
     private func layout(proposal: ProposedViewSize, subviews: Subviews) -> (size: CGSize, positions: [CGPoint]) {
-        let maxWidth = proposal.width ?? .infinity
+        let maxWidth = proposal.width ?? 10000 // Use large finite value instead of infinity
         var positions: [CGPoint] = []
         var currentX: CGFloat = 0
         var currentY: CGFloat = 0
         var lineHeight: CGFloat = 0
+        var actualWidth: CGFloat = 0
 
         for subview in subviews {
             let size = subview.sizeThatFits(.unspecified)
@@ -578,9 +579,12 @@ struct FlowLayout: Layout {
             positions.append(CGPoint(x: currentX, y: currentY))
             lineHeight = max(lineHeight, size.height)
             currentX += size.width + spacing
+            actualWidth = max(actualWidth, currentX - spacing)
         }
 
-        return (CGSize(width: maxWidth, height: currentY + lineHeight), positions)
+        // Return actual used width, not infinity
+        let finalWidth = proposal.width ?? actualWidth
+        return (CGSize(width: finalWidth, height: currentY + lineHeight), positions)
     }
 }
 
