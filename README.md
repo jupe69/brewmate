@@ -73,6 +73,9 @@ A beautiful, native macOS GUI for [Homebrew](https://brew.sh) package management
 - **3-Column Layout** - Familiar navigation split view design
 - **Dark Mode Support** - Seamlessly adapts to your system appearance
 - **Keyboard Shortcuts** - Cmd+R to refresh, Cmd+Shift+U for updates, and more
+- **Skeleton Loading** - Smooth loading placeholders while fetching data
+- **Contextual Empty States** - Helpful messages when lists are empty
+- **Enhanced Error Handling** - Clear error messages with recovery suggestions
 
 ## Requirements
 

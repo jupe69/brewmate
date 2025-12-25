@@ -36,6 +36,61 @@ struct InlineLoadingView: View {
     }
 }
 
+/// A skeleton loading row that mimics package row appearance
+struct SkeletonPackageRow: View {
+    @State private var isAnimating = false
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Icon placeholder
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color.secondary.opacity(0.2))
+                .frame(width: 28, height: 28)
+
+            VStack(alignment: .leading, spacing: 6) {
+                // Title placeholder
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.secondary.opacity(0.2))
+                    .frame(width: CGFloat.random(in: 80...150), height: 14)
+
+                // Description placeholder
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.secondary.opacity(0.15))
+                    .frame(width: CGFloat.random(in: 150...250), height: 12)
+            }
+
+            Spacer()
+
+            // Version placeholder
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color.secondary.opacity(0.15))
+                .frame(width: 50, height: 12)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 10)
+        .opacity(isAnimating ? 0.6 : 1.0)
+        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isAnimating)
+        .onAppear {
+            isAnimating = true
+        }
+    }
+}
+
+/// A skeleton loading view for package lists
+struct SkeletonListView: View {
+    var rowCount: Int = 8
+
+    var body: some View {
+        List {
+            ForEach(0..<rowCount, id: \.self) { _ in
+                SkeletonPackageRow()
+                    .listRowSeparator(.hidden)
+            }
+        }
+        .listStyle(.inset)
+    }
+}
+
 /// A view shown when Homebrew is not installed
 struct BrewNotInstalledView: View {
     var body: some View {
@@ -71,6 +126,8 @@ struct EmptyStateView: View {
     var title: String
     var message: String
     var systemImage: String
+    var actionTitle: String? = nil
+    var action: (() -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 16) {
@@ -86,6 +143,14 @@ struct EmptyStateView: View {
                 .font(.subheadline)
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
+
+            if let actionTitle = actionTitle, let action = action {
+                Button(actionTitle) {
+                    action()
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 8)
+            }
         }
         .padding(40)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -98,9 +163,11 @@ struct ErrorView: View {
     var onRetry: (() -> Void)?
     var onDismiss: (() -> Void)?
 
+    @State private var showCopied = false
+
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: "exclamationmark.triangle")
+            Image(systemName: error.icon)
                 .font(.system(size: 48))
                 .foregroundStyle(.orange)
 
@@ -111,14 +178,23 @@ struct ErrorView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+                .textSelection(.enabled)
 
             if let suggestion = error.recoverySuggestion {
                 Text(suggestion)
                     .font(.caption)
                     .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
             }
 
             HStack(spacing: 12) {
+                Button {
+                    copyError()
+                } label: {
+                    Label(showCopied ? "Copied!" : "Copy Error", systemImage: showCopied ? "checkmark" : "doc.on.doc")
+                }
+                .buttonStyle(.bordered)
+
                 if let onDismiss {
                     Button("Dismiss") {
                         onDismiss()
@@ -136,6 +212,20 @@ struct ErrorView: View {
         }
         .padding(40)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func copyError() {
+        let errorText = """
+        Error: \(error.localizedDescription)
+        Suggestion: \(error.recoverySuggestion ?? "N/A")
+        """
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(errorText, forType: .string)
+
+        showCopied = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            showCopied = false
+        }
     }
 }
 

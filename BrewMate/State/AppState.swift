@@ -255,14 +255,20 @@ enum AppError: LocalizedError, Identifiable {
     case brewNotInstalled
     case commandFailed(String)
     case networkError(String)
+    case packageNotFound(String)
+    case permissionDenied(String)
+    case timeout(String)
     case unknown(String)
 
     var id: String {
         switch self {
         case .brewNotInstalled: return "brew_not_installed"
-        case .commandFailed(let msg): return "command_failed_\(msg)"
-        case .networkError(let msg): return "network_error_\(msg)"
-        case .unknown(let msg): return "unknown_\(msg)"
+        case .commandFailed(let msg): return "command_failed_\(msg.prefix(50))"
+        case .networkError(let msg): return "network_error_\(msg.prefix(50))"
+        case .packageNotFound(let pkg): return "package_not_found_\(pkg)"
+        case .permissionDenied(let msg): return "permission_denied_\(msg.prefix(50))"
+        case .timeout(let cmd): return "timeout_\(cmd.prefix(50))"
+        case .unknown(let msg): return "unknown_\(msg.prefix(50))"
         }
     }
 
@@ -274,6 +280,12 @@ enum AppError: LocalizedError, Identifiable {
             return message
         case .networkError(let message):
             return "Network error: \(message)"
+        case .packageNotFound(let packageName):
+            return "Package '\(packageName)' not found"
+        case .permissionDenied(let message):
+            return "Permission denied: \(message)"
+        case .timeout(let command):
+            return "Command timed out: \(command)"
         case .unknown(let message):
             return message
         }
@@ -284,11 +296,29 @@ enum AppError: LocalizedError, Identifiable {
         case .brewNotInstalled:
             return "Visit https://brew.sh to install Homebrew"
         case .commandFailed:
-            return "Try running the command again or check Homebrew's status"
+            return "Try running 'brew doctor' in Terminal to diagnose issues"
         case .networkError:
             return "Check your internet connection and try again"
+        case .packageNotFound:
+            return "Check the package name or search for alternatives"
+        case .permissionDenied:
+            return "Check file permissions or run 'brew doctor' for diagnostics"
+        case .timeout:
+            return "The command took too long. Try again or check system resources"
         case .unknown:
-            return "Please try again"
+            return "Please try again or restart the app"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .brewNotInstalled: return "shippingbox"
+        case .commandFailed: return "exclamationmark.triangle"
+        case .networkError: return "wifi.slash"
+        case .packageNotFound: return "magnifyingglass"
+        case .permissionDenied: return "lock.shield"
+        case .timeout: return "clock.badge.exclamationmark"
+        case .unknown: return "questionmark.circle"
         }
     }
 }

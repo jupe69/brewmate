@@ -71,13 +71,13 @@ struct PackageListView: View {
     private var packagesList: some View {
         Group {
             if appState.isLoading {
-                LoadingView(message: "Loading packages...")
+                SkeletonListView()
             } else if appState.filteredPackages.isEmpty {
                 if appState.searchText.isEmpty {
                     EmptyStateView(
-                        title: "No Packages",
+                        title: emptyTitle,
                         message: emptyMessage,
-                        systemImage: "shippingbox"
+                        systemImage: emptyIcon
                     )
                 } else {
                     EmptyStateView(
@@ -120,6 +120,23 @@ struct PackageListView: View {
         }
     }
 
+    private var emptyTitle: String {
+        switch appState.selectedSection {
+        case .updates:
+            return "You're Up to Date"
+        case .favorites:
+            return "No Favorites"
+        case .pinned:
+            return "No Pinned Packages"
+        case .formulae:
+            return "No Formulae"
+        case .casks:
+            return "No Casks"
+        default:
+            return "No Packages"
+        }
+    }
+
     private var emptyMessage: String {
         switch appState.selectedSection {
         case .formulae:
@@ -128,8 +145,31 @@ struct PackageListView: View {
             return "You don't have any casks installed."
         case .installed:
             return "You don't have any packages installed."
+        case .updates:
+            return "All packages are up to date!"
+        case .favorites:
+            return "Mark packages as favorites to see them here."
+        case .pinned:
+            return "Pin packages to prevent them from being auto-upgraded."
         default:
             return "No packages to display."
+        }
+    }
+
+    private var emptyIcon: String {
+        switch appState.selectedSection {
+        case .updates:
+            return "checkmark.circle"
+        case .favorites:
+            return "star"
+        case .pinned:
+            return "pin"
+        case .formulae:
+            return "terminal"
+        case .casks:
+            return "app"
+        default:
+            return "shippingbox"
         }
     }
 
@@ -260,7 +300,7 @@ struct PackageListView: View {
     private var servicesView: some View {
         Group {
             if appState.isLoading {
-                LoadingView(message: "Loading services...")
+                SkeletonListView(rowCount: 5)
             } else if appState.services.isEmpty {
                 EmptyStateView(
                     title: "No Services",
