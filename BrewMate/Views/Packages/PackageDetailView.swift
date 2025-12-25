@@ -324,12 +324,13 @@ struct PackageDetailView: View {
                     showFavoritesPaywall = true
                 } label: {
                     HStack {
+                        Spacer()
                         Image(systemName: "lock.fill")
                         Text("Upgrade to add notes")
+                        Spacer()
                     }
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
                     .frame(height: 60)
                     .background(Color(nsColor: .controlBackgroundColor))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
