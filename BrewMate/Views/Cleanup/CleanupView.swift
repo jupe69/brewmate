@@ -13,6 +13,16 @@ struct CleanupView: View {
     @State private var diskUsage: DiskUsageInfo?
 
     var body: some View {
+        Group {
+            if LicenseManager.shared.isPro {
+                cleanupContent
+            } else {
+                InlinePaywallView(feature: .cleanup)
+            }
+        }
+    }
+
+    private var cleanupContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 // Header

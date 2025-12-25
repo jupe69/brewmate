@@ -114,6 +114,8 @@ final class UpdateScheduler: ObservableObject {
         checkTimer?.invalidate()
         checkTimer = nil
 
+        // Background updates are a Pro feature
+        guard LicenseManager.shared.isPro else { return }
         guard autoCheckEnabled else { return }
 
         let interval = checkFrequency.timeInterval
@@ -135,6 +137,8 @@ final class UpdateScheduler: ObservableObject {
         autoUpgradeTimer?.invalidate()
         autoUpgradeTimer = nil
 
+        // Auto-upgrade is a Pro feature
+        guard LicenseManager.shared.isPro else { return }
         guard autoUpgradeEnabled else { return }
 
         let interval = autoUpgradeFrequency.timeInterval

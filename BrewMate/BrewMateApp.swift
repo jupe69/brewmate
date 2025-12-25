@@ -90,6 +90,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var updateScheduler: UpdateScheduler?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Initialize license manager and start trial if needed
+        LicenseManager.shared.startTrialIfNeeded()
+
+        // Validate license in background if we have one
+        Task {
+            await LicenseManager.shared.validateOnStartup()
+        }
+
         // Initialize and start the update scheduler
         Task { @MainActor in
             updateScheduler = UpdateScheduler()
@@ -137,12 +145,17 @@ struct SettingsView: View {
                     Label("Homebrew", systemImage: "shippingbox")
                 }
 
+            LicenseSettingsView()
+                .tabItem {
+                    Label("License", systemImage: "key.fill")
+                }
+
             AboutSettingsView()
                 .tabItem {
                     Label("About", systemImage: "info.circle")
                 }
         }
-        .frame(width: 550, height: 500)
+        .frame(width: 550, height: 550)
     }
 }
 
@@ -154,10 +167,13 @@ struct GeneralSettingsView: View {
 
     @StateObject private var updateScheduler = UpdateScheduler()
 
+    private var isPro: Bool { LicenseManager.shared.isPro }
+
     var body: some View {
         Form {
             Section {
                 Toggle("Show in menu bar", isOn: $showMenuBarIcon)
+                    .disabled(!isPro)
                     .onChange(of: showMenuBarIcon) { _, newValue in
                         // Notify the app to update menu bar
                         NotificationCenter.default.post(
@@ -170,8 +186,12 @@ struct GeneralSettingsView: View {
                 Text("Keep BrewMate accessible from the menu bar with quick actions and update notifications")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                if !isPro {
+                    proFeatureNote
+                }
             } header: {
-                Text("Menu Bar")
+                proSectionHeader("Menu Bar")
             }
 
             Section {
@@ -187,8 +207,9 @@ struct GeneralSettingsView: View {
                     get: { updateScheduler.autoCheckEnabled },
                     set: { updateScheduler.autoCheckEnabled = $0 }
                 ))
+                .disabled(!isPro)
 
-                if updateScheduler.autoCheckEnabled {
+                if updateScheduler.autoCheckEnabled && isPro {
                     Picker("Check frequency", selection: Binding(
                         get: { updateScheduler.checkFrequency },
                         set: { updateScheduler.checkFrequency = $0 }
@@ -211,10 +232,14 @@ struct GeneralSettingsView: View {
                         }
                     }
                 }
+
+                if !isPro {
+                    proFeatureNote
+                }
             } header: {
-                Text("Update Checks")
+                proSectionHeader("Update Checks")
             } footer: {
-                if updateScheduler.autoCheckEnabled {
+                if updateScheduler.autoCheckEnabled && isPro {
                     Text("BrewMate will check for package updates in the background at the specified interval.")
                 }
             }
@@ -224,8 +249,9 @@ struct GeneralSettingsView: View {
                     get: { updateScheduler.autoUpgradeEnabled },
                     set: { updateScheduler.autoUpgradeEnabled = $0 }
                 ))
+                .disabled(!isPro)
 
-                if updateScheduler.autoUpgradeEnabled {
+                if updateScheduler.autoUpgradeEnabled && isPro {
                     Picker("Upgrade frequency", selection: Binding(
                         get: { updateScheduler.autoUpgradeFrequency },
                         set: { updateScheduler.autoUpgradeFrequency = $0 }
@@ -243,16 +269,46 @@ struct GeneralSettingsView: View {
                         }
                     }
                 }
+
+                if !isPro {
+                    proFeatureNote
+                }
             } header: {
-                Text("Auto-Upgrade")
+                proSectionHeader("Auto-Upgrade")
             } footer: {
-                if updateScheduler.autoUpgradeEnabled {
+                if updateScheduler.autoUpgradeEnabled && isPro {
                     Text("Packages will be automatically upgraded in the background. Pinned packages are not upgraded. Updates respect battery status and won't run on low battery (<20%).")
                 }
             }
         }
         .formStyle(.grouped)
         .padding()
+    }
+
+    @ViewBuilder
+    private func proSectionHeader(_ title: String) -> some View {
+        HStack {
+            Text(title)
+            if !isPro {
+                Text("PRO")
+                    .font(.caption2)
+                    .fontWeight(.semibold)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.orange)
+                    .foregroundStyle(.white)
+                    .clipShape(Capsule())
+            }
+        }
+    }
+
+    private var proFeatureNote: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "lock.fill")
+            Text("Requires Pro")
+        }
+        .font(.caption)
+        .foregroundStyle(.orange)
     }
 }
 

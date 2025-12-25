@@ -13,7 +13,7 @@ final class MenuBarManager {
     var isCheckingUpdates: Bool = false
     var showMenuBarIcon: Bool {
         didSet {
-            if showMenuBarIcon {
+            if showMenuBarIcon && LicenseManager.shared.isPro {
                 setupMenuBar()
             } else {
                 removeMenuBar()
@@ -25,7 +25,7 @@ final class MenuBarManager {
         self.brewService = brewService
         self.showMenuBarIcon = showMenuBarIcon
 
-        if showMenuBarIcon {
+        if showMenuBarIcon && LicenseManager.shared.isPro {
             setupMenuBar()
         }
     }
@@ -33,6 +33,12 @@ final class MenuBarManager {
     // MARK: - Setup
 
     private func setupMenuBar() {
+        // Menu bar is a Pro feature
+        guard LicenseManager.shared.isPro else {
+            removeMenuBar()
+            return
+        }
+
         guard statusItem == nil else { return }
 
         let statusBar = NSStatusBar.system

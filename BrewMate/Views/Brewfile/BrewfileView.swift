@@ -15,6 +15,17 @@ struct BrewfileView: View {
     @State private var exportURL: URL?
 
     var body: some View {
+        Group {
+            if LicenseManager.shared.isPro {
+                brewfileContent_
+            } else {
+                InlinePaywallView(feature: .brewfile)
+            }
+        }
+        .navigationTitle("Brewfile")
+    }
+
+    private var brewfileContent_: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 // Header
@@ -32,7 +43,6 @@ struct BrewfileView: View {
             }
             .padding(24)
         }
-        .navigationTitle("Brewfile")
         .task {
             await loadBrewfile()
         }

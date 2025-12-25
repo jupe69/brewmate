@@ -6,6 +6,34 @@ A beautiful, native macOS GUI for [Homebrew](https://brew.sh) package management
 ![Swift](https://img.shields.io/badge/Swift-5.9+-orange?logo=swift)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+## Pricing
+
+BrewMate offers a **free version** with full core functionality, plus a **Pro upgrade** for power users.
+
+| | Free | Pro |
+|---|:---:|:---:|
+| Browse & search packages | ✓ | ✓ |
+| Install, uninstall, upgrade | ✓ | ✓ |
+| Bulk operations | ✓ | ✓ |
+| Services management | ✓ | ✓ |
+| Taps management | ✓ | ✓ |
+| Favorites, notes, history | ✓ | ✓ |
+| Diagnostics (brew doctor) | ✓ | ✓ |
+| Quarantine management | ✓ | ✓ |
+| Pin packages | ✓ | ✓ |
+| **Menu bar integration** | | ✓ |
+| **Background update checks** | | ✓ |
+| **Auto-upgrade packages** | | ✓ |
+| **Brewfile import/export** | | ✓ |
+| **Cleanup tools** | | ✓ |
+| **Price** | Free | $9.99 (one-time) |
+
+**14-day free trial** of all Pro features included.
+
+[Purchase Pro](https://multimodal.lemonsqueezy.com/checkout/buy/36a71ea0-950d-47c2-b697-d55adbb17b7a)
+
+---
+
 ## Features
 
 ### Package Management
@@ -36,34 +64,36 @@ A beautiful, native macOS GUI for [Homebrew](https://brew.sh) package management
 - **Add/Remove Taps** - Manage third-party taps with ease
 - **Tap Details** - View formula and cask counts per tap
 
-### Brewfile Support
-- **Export Brewfile** - Generate a Brewfile from your installed packages
-- **Import Brewfile** - Install packages from an existing Brewfile
-- **Descriptions Included** - Exported Brewfiles include package descriptions as comments
-
 ### Diagnostics
 - **Brew Doctor** - Run system health checks with streaming output
 - **Disk Usage** - View space used by cache, Cellar, and Caskroom
 - **Analytics Control** - Enable/disable Homebrew analytics
-
-### Cleanup
-- **Disk Usage Overview** - Visual cards showing cache, Cellar, and Caskroom sizes
-- **Cleanup Preview** - Scan and preview what will be removed before cleaning
-- **Standard Cleanup** - Remove old package versions and outdated downloads
-- **Deep Cleanup** - Clear all cached downloads for maximum space recovery
 
 ### Quarantine Management
 - **Scan Applications** - Find apps with macOS quarantine attributes
 - **Remove Quarantine** - Clear quarantine flags from trusted applications
 - **Match to Casks** - Automatically match apps to their Homebrew casks
 
-### Menu Bar Integration
+### Pro Features
+
+#### Brewfile Support
+- **Export Brewfile** - Generate a Brewfile from your installed packages
+- **Import Brewfile** - Install packages from an existing Brewfile
+- **Descriptions Included** - Exported Brewfiles include package descriptions as comments
+
+#### Cleanup Tools
+- **Disk Usage Overview** - Visual cards showing cache, Cellar, and Caskroom sizes
+- **Cleanup Preview** - Scan and preview what will be removed before cleaning
+- **Standard Cleanup** - Remove old package versions and outdated downloads
+- **Deep Cleanup** - Clear all cached downloads for maximum space recovery
+
+#### Menu Bar Integration
 - **Status Icon** - Optional menu bar icon with update badge
 - **Quick Actions** - Check for updates or upgrade all from the menu bar
 - **Outdated List** - See outdated packages without opening the main window
 
-### Background Features
-- **Automatic Update Checks** - Configurable daily/weekly/monthly checks
+#### Background Features
+- **Automatic Update Checks** - Configurable hourly/daily/weekly checks
 - **Auto-Upgrade** - Optionally upgrade packages automatically
 - **Battery Aware** - Skip auto-upgrades when battery is low
 - **Notifications** - Get notified when updates are available
