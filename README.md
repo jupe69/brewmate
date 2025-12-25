@@ -156,6 +156,8 @@ Download the latest release from the [Releases](https://github.com/yourusername/
 | Cmd+F | Focus search field |
 | Cmd+, | Open Preferences |
 | Cmd+Shift+U | Check for updates |
+| Cmd+Shift+S | Toggle selection mode |
+| Escape | Exit selection mode / Clear selection |
 
 ## Preferences
 

@@ -47,8 +47,18 @@ struct PackageListView: View {
                             systemImage: appState.isSelectionMode ? "checkmark" : "checkmark.circle"
                         )
                     }
+                    .keyboardShortcut("s", modifiers: [.command, .shift])
+                    .help("Toggle selection mode (Cmd+Shift+S)")
                 }
             }
+        }
+        .onKeyPress(.escape) {
+            if appState.isSelectionMode {
+                appState.clearSelection()
+                appState.isSelectionMode = false
+                return .handled
+            }
+            return .ignored
         }
         .refreshable {
             await refresh()
