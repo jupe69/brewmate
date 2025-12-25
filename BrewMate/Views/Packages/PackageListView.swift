@@ -137,11 +137,6 @@ struct PackageListView: View {
                                 appState: appState
                             )
                             .tag(package)
-                            .onTapGesture {
-                                if appState.isSelectionMode {
-                                    appState.togglePackageSelection(package)
-                                }
-                            }
                         }
 
                         // Load more trigger
