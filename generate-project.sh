@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# BrewMate Project Generator
+# Taphouse Project Generator
 # This script generates the Xcode project using XcodeGen
 
 set -e
 
-echo "🍺 BrewMate Project Generator"
+echo "🍺 Taphouse Project Generator"
 echo "=============================="
 
 # Check if XcodeGen is installed
@@ -35,11 +35,11 @@ echo ""
 echo "✅ Project generated successfully!"
 echo ""
 echo "📂 Open the project:"
-echo "  open BrewMate.xcodeproj"
+echo "  open Taphouse.xcodeproj"
 echo ""
 echo "🔧 Build and run:"
-echo "  1. Open BrewMate.xcodeproj in Xcode"
-echo "  2. Select the BrewMate scheme"
+echo "  1. Open Taphouse.xcodeproj in Xcode"
+echo "  2. Select the Taphouse scheme"
 echo "  3. Press ⌘R to build and run"
 echo ""
 echo "⚠️  Note: The app requires Homebrew to be installed on your Mac."

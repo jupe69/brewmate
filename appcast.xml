@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Taphouse Updates</title>
+        <link>https://taphouse.multimodalsolutions.gr/appcast.xml</link>
+        <description>Updates for Taphouse</description>
+        <language>en</language>
+
+        <!--
+        Add new versions at the TOP of this list.
+
+        To create a new release:
+        1. Build your app in Release mode
+        2. Create a ZIP of the .app bundle
+        3. Generate signature: ./bin/sign_update Taphouse.zip
+        4. Add a new <item> block below with the version info
+        5. Upload the ZIP to your server
+        6. Upload this updated appcast.xml
+        -->
+
+        <item>
+            <title>Version 1.0.0</title>
+            <description><![CDATA[
+                <h2>Initial Release</h2>
+                <ul>
+                    <li>Native macOS GUI for Homebrew</li>
+                    <li>Package browsing, search, install, and uninstall</li>
+                    <li>Services management</li>
+                    <li>Pro features: bulk operations, favorites, history, and more</li>
+                </ul>
+            ]]></description>
+            <pubDate>Thu, 26 Dec 2024 12:00:00 +0000</pubDate>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://taphouse.multimodalsolutions.gr/releases/Taphouse-1.0.0.zip"
+                length="0"
+                type="application/octet-stream"
+                sparkle:edSignature="SIGNATURE_GOES_HERE"
+            />
+        </item>
+
+    </channel>
+</rss>

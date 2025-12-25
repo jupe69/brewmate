@@ -1,8 +1,8 @@
-# BrewMate Marketing Plan
+# Taphouse Marketing Plan
 
 ## Executive Summary
 
-BrewMate is a native macOS GUI for Homebrew package management. It targets Mac developers and power users who want a visual interface for managing their development tools without memorizing terminal commands.
+Taphouse is a native macOS GUI for Homebrew package management. It targets Mac developers and power users who want a visual interface for managing their development tools without memorizing terminal commands.
 
 **Business Model:** Freemium with $4.99 one-time Pro upgrade
 **Target Revenue:** $5,000-10,000/year passive income
@@ -67,7 +67,7 @@ BrewMate is a native macOS GUI for Homebrew package management. It targets Mac d
 | **Cakebrew** | Free | Open source, simple | Abandoned (last update 2019), limited features |
 | **Cork** | Free | Modern UI, active development | Feature overlap, no business model |
 
-### BrewMate Differentiation
+### Taphouse Differentiation
 1. **Freemium model** - Sustainable development, regular updates
 2. **Native SwiftUI** - Fast, modern, follows Apple HIG
 3. **Complete feature set** - Services, taps, cleanup, Brewfile all in one
@@ -87,7 +87,7 @@ BrewMate is a native macOS GUI for Homebrew package management. It targets Mac d
 **Strategy:**
 - Post launch announcement to r/macapps
 - Engage authentically in Homebrew discussions
-- Share useful tips, mention BrewMate when relevant
+- Share useful tips, mention Taphouse when relevant
 - Post major feature updates
 
 **Sample Post Title:**
@@ -101,7 +101,7 @@ BrewMate is a native macOS GUI for Homebrew package management. It targets Mac d
 - Be humble, ask for feedback
 
 **Sample Post:**
-> Show HN: BrewMate - A native macOS app for managing Homebrew packages
+> Show HN: Taphouse - A native macOS app for managing Homebrew packages
 
 ### 3. Product Hunt (Launch Boost - Free)
 **Strategy:**
@@ -120,17 +120,17 @@ BrewMate is a native macOS GUI for Homebrew package management. It targets Mac d
 - Post development updates with screenshots/videos
 - Use hashtags: #macOS #SwiftUI #macdev #buildinpublic
 - Engage with Mac developer community
-- Share tips about Homebrew with BrewMate screenshots
+- Share tips about Homebrew with Taphouse screenshots
 
 **Content Ideas:**
-- "TIL you can pin packages in Homebrew to prevent updates. Here's how in BrewMate..."
-- "Just cleaned up 15GB with BrewMate's cleanup tool. Here's what it found..."
+- "TIL you can pin packages in Homebrew to prevent updates. Here's how in Taphouse..."
+- "Just cleaned up 15GB with Taphouse's cleanup tool. Here's what it found..."
 - Development progress threads
 
 ### 5. YouTube (Long-term SEO - Free)
 **Video Ideas:**
 - "How to Manage Homebrew Without Terminal" (tutorial)
-- "BrewMate Demo - Homebrew GUI for Mac" (product demo)
+- "Taphouse Demo - Homebrew GUI for Mac" (product demo)
 - "Clean Up Your Mac: Homebrew Edition" (value content)
 
 **Strategy:**
@@ -149,15 +149,15 @@ BrewMate is a native macOS GUI for Homebrew package management. It targets Mac d
 - Star/watch homebrew/brew repo for visibility
 - Contribute to discussions
 - Create useful Homebrew-related gists
-- Link to BrewMate in profile
+- Link to Taphouse in profile
 
 ### 8. Website (SEO Hub)
 **Purpose:** Central landing page, SEO, credibility
 
 **Domain Options:**
-- brewmate.app (preferred)
-- getbrewmate.com
-- brewmateapp.com
+- taphouse.app (preferred)
+- gettaphouse.com
+- taphouseapp.com
 
 **Pages to Create:**
 1. **Home** - Hero, features, screenshots, download CTA
@@ -227,14 +227,14 @@ CTA: "Download Free" | "View on GitHub"
 | Tue | Reddit | Launch post r/macapps |
 | Tue | HN | Show HN post |
 | Wed | Twitter | Thank you + stats thread |
-| Thu | Dev.to | "Why I Built BrewMate" article |
+| Thu | Dev.to | "Why I Built Taphouse" article |
 | Fri | Twitter | Feature highlight (cleanup) |
 
 ### Ongoing Weekly Schedule
 | Day | Content |
 |-----|---------|
 | Mon | Development update / behind-the-scenes |
-| Wed | Tip/tutorial with BrewMate screenshot |
+| Wed | Tip/tutorial with Taphouse screenshot |
 | Fri | Feature highlight or user testimonial |
 
 ---
@@ -327,7 +327,7 @@ CTA: "Download Free" | "View on GitHub"
 ### Website (Only Expense)
 | Item | Cost | Notes |
 |------|------|-------|
-| Domain | ~$12/year | brewmate.app or similar |
+| Domain | ~$12/year | taphouse.app or similar |
 | Hosting | $0-5/month | Vercel, Netlify, or GitHub Pages (free) |
 
 **Total Annual Cost:** ~$12-72/year

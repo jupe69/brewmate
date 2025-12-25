@@ -1,4 +1,4 @@
-name: BrewMate
+name: Taphouse
 options:
   bundleIdPrefix: com.multimodalsolutions
   deploymentTarget:
@@ -6,6 +6,11 @@ options:
   xcodeVersion: "15.0"
   generateEmptyDirectories: true
   groupSortPosition: top
+
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.0"
 
 settings:
   base:
@@ -15,21 +20,24 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     CODE_SIGN_STYLE: Automatic
     ENABLE_HARDENED_RUNTIME: YES
-    PRODUCT_NAME: BrewMate
+    PRODUCT_NAME: Taphouse
 
 targets:
-  BrewMate:
+  Taphouse:
     type: application
     platform: macOS
     sources:
-      - path: BrewMate
+      - path: Taphouse
         excludes:
           - "**/.DS_Store"
+    dependencies:
+      - package: Sparkle
+        product: Sparkle
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.multimodalsolutions.brewmate
-        INFOPLIST_FILE: BrewMate/Info.plist
-        CODE_SIGN_ENTITLEMENTS: BrewMate/BrewMate.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: com.multimodalsolutions.taphouse
+        INFOPLIST_FILE: Taphouse/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Taphouse/Taphouse.entitlements
         ENABLE_APP_SANDBOX: NO
         ENABLE_HARDENED_RUNTIME: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -38,16 +46,16 @@ targets:
           - $(inherited)
           - "@executable_path/../Frameworks"
     entitlements:
-      path: BrewMate/BrewMate.entitlements
+      path: Taphouse/Taphouse.entitlements
       properties:
         com.apple.security.app-sandbox: false
         com.apple.security.cs.allow-unsigned-executable-memory: true
 
 schemes:
-  BrewMate:
+  Taphouse:
     build:
       targets:
-        BrewMate: all
+        Taphouse: all
     run:
       config: Debug
     test:

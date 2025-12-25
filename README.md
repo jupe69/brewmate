@@ -1,4 +1,4 @@
-# BrewMate
+# Taphouse
 
 A beautiful, native macOS GUI for [Homebrew](https://brew.sh) package management.
 
@@ -8,7 +8,7 @@ A beautiful, native macOS GUI for [Homebrew](https://brew.sh) package management
 
 ## Pricing
 
-BrewMate offers a **free version** with essential functionality, plus a **Pro upgrade** for power users.
+Taphouse offers a **free version** with essential functionality, plus a **Pro upgrade** for power users.
 
 | | Free | Pro |
 |---|:---:|:---:|
@@ -27,6 +27,7 @@ BrewMate offers a **free version** with essential functionality, plus a **Pro up
 | **Auto-upgrade packages** | | ✓ |
 | **Brewfile import/export** | | ✓ |
 | **Cleanup tools** | | ✓ |
+| **App Store integration** | | ✓ |
 | **Price** | Free | $4.99 (one-time) |
 
 **14-day free trial** of all Pro features included.
@@ -95,6 +96,13 @@ BrewMate offers a **free version** with essential functionality, plus a **Pro up
 - **Standard Cleanup** - Remove old package versions and outdated downloads
 - **Deep Cleanup** - Clear all cached downloads for maximum space recovery
 
+#### Mac App Store Integration
+- **Browse Installed Apps** - View all Mac App Store apps installed on your system
+- **Check for Updates** - See which App Store apps have updates available
+- **Search App Store** - Find and install apps directly from the Mac App Store
+- **Upgrade All** - Update all outdated App Store apps with one click
+- **Requires `mas` CLI** - Install via `brew install mas`
+
 #### Menu Bar Integration
 - **Status Icon** - Optional menu bar icon with update badge
 - **Quick Actions** - Check for updates or upgrade all from the menu bar
@@ -132,7 +140,7 @@ BrewMate offers a **free version** with essential functionality, plus a **Pro up
 - **Desktop Widget** - macOS widget showing outdated package count
 - **Multiple Sizes** - Small, medium, and large widget variants
 - **Live Updates** - Widget refreshes when package status changes
-- **Quick Access** - Click widget to open BrewMate
+- **Quick Access** - Click widget to open Taphouse
 
 ## Requirements
 
@@ -143,7 +151,7 @@ BrewMate offers a **free version** with essential functionality, plus a **Pro up
 ## Installation
 
 ### Download Release
-Download the latest release from the [Releases](https://github.com/yourusername/brewmate/releases) page.
+Download the latest release from the [Releases](https://github.com/yourusername/taphouse/releases) page.
 
 ### Build from Source
 
@@ -154,8 +162,8 @@ Download the latest release from the [Releases](https://github.com/yourusername/
 
 2. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/brewmate.git
-   cd brewmate
+   git clone https://github.com/yourusername/taphouse.git
+   cd taphouse
    ```
 
 3. **Generate the Xcode project**:
@@ -165,7 +173,7 @@ Download the latest release from the [Releases](https://github.com/yourusername/
 
 4. **Open in Xcode**:
    ```bash
-   open BrewMate.xcodeproj
+   open Taphouse.xcodeproj
    ```
 
 5. **Build and Run** (Cmd+R)
@@ -181,6 +189,7 @@ Download the latest release from the [Releases](https://github.com/yourusername/
 | Formulae | Command-line tools only |
 | Casks | GUI applications only |
 | Updates | Packages with available upgrades |
+| App Store | Mac App Store apps (requires `mas`) |
 | Favorites | Your marked favorite packages |
 | Pinned | Packages excluded from auto-upgrade |
 | Taps | Homebrew repositories |
@@ -218,7 +227,7 @@ Download the latest release from the [Releases](https://github.com/yourusername/
 
 ## Preferences
 
-Access preferences via **BrewMate > Settings** (Cmd+,):
+Access preferences via **Taphouse > Settings** (Cmd+,):
 
 ### General
 - Refresh packages when app becomes active
@@ -237,10 +246,10 @@ Access preferences via **BrewMate > Settings** (Cmd+,):
 
 ## Architecture
 
-BrewMate is built with a clean MVVM architecture:
+Taphouse is built with a clean MVVM architecture:
 
 ```
-BrewMate/
+Taphouse/
 ├── Core/           # Shell execution, Homebrew service, managers
 ├── Models/         # Data models with Codable support
 ├── State/          # Observable app state

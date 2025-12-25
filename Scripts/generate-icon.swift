@@ -3,7 +3,7 @@
 import AppKit
 import Foundation
 
-// App icon generator for BrewMate
+// App icon generator for Taphouse
 // Run with: swift generate-icon.swift
 
 // macOS requires specific pixel sizes for each icon slot
@@ -119,7 +119,7 @@ func generateIcon(size: Int) -> Data? {
 }
 
 // Create output directory
-let outputDir = "../BrewMate/Assets.xcassets/AppIcon.appiconset"
+let outputDir = "../Taphouse/Assets.xcassets/AppIcon.appiconset"
 
 // Generate icons
 for (size, filename) in sizes {
