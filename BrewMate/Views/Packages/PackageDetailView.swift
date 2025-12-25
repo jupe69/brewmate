@@ -7,6 +7,9 @@ struct PackageDetailView: View {
     @Environment(\.brewService) private var brewService
     @Environment(\.openURL) private var openURL
 
+    @AppStorage("confirmBeforeUninstall") private var confirmBeforeUninstall = true
+    @AppStorage("showDependencies") private var showDependencies = true
+
     @State private var showUninstallConfirmation = false
     @State private var isUninstalling = false
     @State private var detailedInfo: DetailedPackageInfo?
@@ -43,8 +46,8 @@ struct PackageDetailView: View {
                         // Notes section
                         notesSection
 
-                        // Dependencies (for formulae) - simple list
-                        if case .formula(let formula) = package, !formula.dependencies.isEmpty {
+                        // Dependencies (for formulae) - simple list (if enabled in settings)
+                        if showDependencies, case .formula(let formula) = package, !formula.dependencies.isEmpty {
                             dependenciesSection(formula.dependencies)
                         }
 
@@ -57,8 +60,8 @@ struct PackageDetailView: View {
                     Label("Overview", systemImage: "info.circle")
                 }
 
-                // Dependencies Tab (for formulae only)
-                if package.isFormula {
+                // Dependencies Tab (for formulae only, if enabled in settings)
+                if showDependencies && package.isFormula {
                     DependencyTreeView(package: package)
                         .tabItem {
                             Label("Dependencies", systemImage: "arrow.down.circle")
@@ -329,7 +332,13 @@ struct PackageDetailView: View {
                 }
 
                 Button(role: .destructive) {
-                    showUninstallConfirmation = true
+                    if confirmBeforeUninstall {
+                        showUninstallConfirmation = true
+                    } else {
+                        Task {
+                            await uninstallPackage()
+                        }
+                    }
                 } label: {
                     if isUninstalling {
                         ProgressView()

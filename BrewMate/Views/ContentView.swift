@@ -6,6 +6,9 @@ struct ContentView: View {
     @State private var brewService = BrewService()
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var hasCheckedBrew = false
+    @State private var lastRefreshTime: Date?
+
+    @AppStorage("refreshOnActivate") private var refreshOnActivate = true
 
     var body: some View {
         Group {
@@ -36,13 +39,17 @@ struct ContentView: View {
                 BrewfileView(appState: appState)
             case .diagnostics:
                 DiagnosticsView(appState: appState)
+            case .cleanup:
+                CleanupView(appState: appState)
+            case .quarantine:
+                QuarantineView(appState: appState)
             case .history:
                 HistoryView(appState: appState)
             default:
                 PackageListView(appState: appState)
             }
         } detail: {
-            let showsDetailPane = ![.search, .taps, .brewfile, .diagnostics, .history].contains(appState.selectedSection)
+            let showsDetailPane = ![.search, .taps, .brewfile, .diagnostics, .cleanup, .quarantine, .history].contains(appState.selectedSection)
 
             if showsDetailPane {
                 if let package = appState.selectedPackage {
@@ -252,8 +259,16 @@ struct ContentView: View {
     }
 
     private func refreshIfNeeded() async {
-        // Only refresh if it's been a while since last refresh
-        // For now, just skip to avoid too frequent refreshes
+        guard refreshOnActivate else { return }
+
+        // Only refresh if it's been more than 5 minutes since last refresh
+        if let lastRefresh = lastRefreshTime {
+            let elapsed = Date().timeIntervalSince(lastRefresh)
+            guard elapsed > 300 else { return } // 5 minutes
+        }
+
+        lastRefreshTime = Date()
+        await refresh()
     }
 
     private func updateBrewData() async {
