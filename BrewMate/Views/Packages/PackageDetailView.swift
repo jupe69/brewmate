@@ -70,8 +70,9 @@ struct PackageDetailView: View {
                         }
                 }
             }
+            .frame(minHeight: 200)
         }
-        .frame(minWidth: 300)
+        .frame(minWidth: 300, minHeight: 400)
         .navigationTitle(package.name)
         .confirmationDialog(
             "Uninstall \(package.name)?",

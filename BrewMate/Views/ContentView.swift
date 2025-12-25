@@ -66,6 +66,9 @@ struct ContentView: View {
                 } else {
                     noSelectionView
                 }
+            } else {
+                // Empty view for sections without detail pane
+                Color.clear
             }
         }
         .navigationSplitViewStyle(.balanced)
