@@ -42,6 +42,10 @@ protocol BrewServiceProtocol: Sendable {
     func searchMAS(query: String) async throws -> [MASSearchResult]
     func installMASApp(id: Int) async -> AsyncStream<String>
     func upgradeMASApps() async -> AsyncStream<String>
+    func uninstallMASApp(id: Int) async -> AsyncStream<String>
+
+    // Package analysis
+    func getLeafPackages() async throws -> Set<String>
 }
 
 /// Main service class for interacting with Homebrew CLI
@@ -640,6 +644,24 @@ actor BrewService: BrewServiceProtocol {
         }
     }
 
+    // MARK: - Package Analysis
+
+    /// Gets leaf packages (packages not required by other packages)
+    /// These are typically packages the user intentionally installed
+    func getLeafPackages() async throws -> Set<String> {
+        let result = try await brew("leaves")
+
+        guard result.isSuccess else {
+            return []
+        }
+
+        let leaves = result.stdout.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+
+        return Set(leaves)
+    }
+
     // MARK: - Taps
 
     func getTaps() async throws -> [TapInfo] {
@@ -1001,6 +1023,52 @@ actor BrewService: BrewServiceProtocol {
                         continuation.yield(output)
                     } else {
                         continuation.yield("Error: \(result.stderr)")
+                    }
+                } catch {
+                    continuation.yield("Error: \(error.localizedDescription)")
+                }
+
+                continuation.finish()
+            }
+        }
+    }
+
+    /// Uninstalls a Mac App Store app (requires admin privileges)
+    func uninstallMASApp(id: Int) async -> AsyncStream<String> {
+        AsyncStream { continuation in
+            Task {
+                continuation.yield("Uninstalling App Store app (ID: \(id))...")
+
+                do {
+                    // First, get the app path using dry-run
+                    let dryRunResult = try await shell.execute("mas uninstall --dry-run \(id)")
+
+                    // Parse the app path from output like "==> Dry run...\n\n/Applications/AppName.app"
+                    let lines = dryRunResult.stdout.components(separatedBy: "\n")
+                    guard let appPath = lines.first(where: { $0.hasSuffix(".app") })?.trimmingCharacters(in: .whitespaces),
+                          !appPath.isEmpty else {
+                        continuation.yield("Error: Could not find app path for ID \(id)")
+                        continuation.finish()
+                        return
+                    }
+
+                    continuation.yield("Found app at: \(appPath)")
+                    continuation.yield("Requesting administrator privileges...")
+
+                    // Use rm -rf with admin privileges (mas uninstall has issues with AppleScript sudo)
+                    let escapedPath = appPath.replacingOccurrences(of: "\"", with: "\\\"")
+                    let script = "do shell script \"rm -rf \\\"\(escapedPath)\\\"\" with administrator privileges"
+                    let result = try await shell.execute("osascript -e '\(script)'")
+
+                    if result.isSuccess {
+                        continuation.yield("Successfully uninstalled app.")
+                    } else {
+                        let error = result.stderr.isEmpty ? result.stdout : result.stderr
+                        if error.contains("cancelled") || error.contains("canceled") || error.contains("User canceled") {
+                            continuation.yield("Uninstall cancelled by user.")
+                        } else {
+                            continuation.yield("Error: \(error)")
+                        }
                     }
                 } catch {
                     continuation.yield("Error: \(error.localizedDescription)")

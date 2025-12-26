@@ -45,6 +45,7 @@ Taphouse offers a **free version** with essential functionality, plus a **Pro up
 - **Search & Install** - Search Homebrew's entire catalog and install packages with one click
 - **Uninstall Packages** - Remove packages with confirmation dialogs
 - **View Package Details** - See descriptions, versions, dependencies, and homepage links
+- **Dependency Detection** - Packages installed as dependencies are marked with a "dep" badge, distinguishing them from packages you explicitly installed
 
 #### Updates & Upgrades
 - **Outdated Package Detection** - Instantly see which packages have updates available
@@ -104,6 +105,7 @@ Taphouse offers a **free version** with essential functionality, plus a **Pro up
 - **Check for Updates** - See which App Store apps have updates available
 - **Search App Store** - Find and install apps directly from the Mac App Store
 - **Upgrade All** - Update all outdated App Store apps with one click
+- **Uninstall Apps** - Remove App Store apps directly from Taphouse (requires admin password)
 - **Requires `mas` CLI** - Install via `brew install mas`
 
 #### Menu Bar Integration
@@ -138,6 +140,12 @@ Taphouse offers a **free version** with essential functionality, plus a **Pro up
 - **Automatic Cache Invalidation** - Smart cache expiry (5 minutes)
 - **Lazy Loading** - Large package lists load incrementally for smooth scrolling
 - **Auto-Pagination** - Automatically loads more items as you scroll
+
+### Network & Proxy Support
+- **System Proxy Detection** - Automatically uses macOS system proxy settings
+- **Corporate Environment Ready** - Works behind HTTP, HTTPS, and SOCKS proxies
+- **Proxy Exception Support** - Respects system proxy bypass rules
+- **Zero Configuration** - No manual proxy setup required
 
 ### Widget Support (Requires Code Signing)
 - **Desktop Widget** - macOS widget showing outdated package count

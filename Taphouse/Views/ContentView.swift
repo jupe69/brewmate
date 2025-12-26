@@ -297,6 +297,7 @@ struct ContentView: View {
             async let casks = brewService.getInstalledCasks()
             async let outdated = brewService.getOutdated()
             async let pinned = brewService.getPinnedPackages()
+            async let leaves = brewService.getLeafPackages()
 
             let loadedFormulae = try await formulae
             let loadedCasks = try await casks
@@ -306,6 +307,7 @@ struct ContentView: View {
             appState.installedCasks = loadedCasks
             appState.outdatedPackages = loadedOutdated
             appState.pinnedPackages = Set(try await pinned)
+            appState.leafPackages = try await leaves
 
             // Update cache
             if updateCache {

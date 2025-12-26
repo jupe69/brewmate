@@ -133,6 +133,7 @@ struct PackageListView: View {
                                 package: package,
                                 isOutdated: isPackageOutdated(package),
                                 isPinned: isPackagePinned(package),
+                                isDependency: isPackageDependency(package),
                                 isSelectionMode: appState.isSelectionMode,
                                 isSelected: appState.selectedPackages.contains(package),
                                 onToggleSelection: {
@@ -255,6 +256,13 @@ struct PackageListView: View {
 
     private func isPackagePinned(_ package: Package) -> Bool {
         appState.pinnedPackages.contains(package.packageName)
+    }
+
+    private func isPackageDependency(_ package: Package) -> Bool {
+        // Only formulae can be dependencies (casks are always intentional installs)
+        // A formula is a dependency if it's NOT in the leaf packages set
+        guard package.isFormula else { return false }
+        return !appState.leafPackages.contains(package.packageName)
     }
 
     // MARK: - Bulk Actions Bar
@@ -489,11 +497,13 @@ struct PackageListView: View {
             async let casks = brewService.getInstalledCasks()
             async let outdated = brewService.getOutdated()
             async let pinned = brewService.getPinnedPackages()
+            async let leaves = brewService.getLeafPackages()
 
             appState.installedFormulae = try await formulae
             appState.installedCasks = try await casks
             appState.outdatedPackages = try await outdated
             appState.pinnedPackages = Set(try await pinned)
+            appState.leafPackages = try await leaves
 
             if appState.selectedSection == .services {
                 appState.services = try await brewService.getServices()

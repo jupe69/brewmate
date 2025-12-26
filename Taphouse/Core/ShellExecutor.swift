@@ -57,6 +57,11 @@ final class ShellExecutor: Sendable {
 
                 // Set up environment
                 var env = ProcessInfo.processInfo.environment
+
+                // Add system proxy settings
+                let proxyEnv = ProxyManager.shared.getProxyEnvironment()
+                env.merge(proxyEnv) { _, new in new }
+
                 if let customEnv = environment {
                     env.merge(customEnv) { _, new in new }
                 }
@@ -140,8 +145,13 @@ final class ShellExecutor: Sendable {
                 process.standardOutput = stdoutPipe
                 process.standardError = stdoutPipe // Combine stdout and stderr
 
-                // Set up environment with brew paths
+                // Set up environment with brew paths and proxy
                 var env = ProcessInfo.processInfo.environment
+
+                // Add system proxy settings
+                let proxyEnv = ProxyManager.shared.getProxyEnvironment()
+                env.merge(proxyEnv) { _, new in new }
+
                 let brewPaths = "/opt/homebrew/bin:/usr/local/bin"
                 if let existingPath = env["PATH"] {
                     env["PATH"] = "\(brewPaths):\(existingPath)"

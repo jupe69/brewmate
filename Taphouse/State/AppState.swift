@@ -143,6 +143,7 @@ final class AppState {
     var services: [BrewServiceInfo] = []
     var taps: [TapInfo] = []
     var pinnedPackages: Set<String> = []
+    var leafPackages: Set<String> = []  // Packages not required by others (intentionally installed)
 
     // MARK: - Mac App Store
     var isMASInstalled: Bool = false

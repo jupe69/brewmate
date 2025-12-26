@@ -102,7 +102,9 @@ struct MASView: View {
             } else {
                 List(selection: $selectedApp) {
                     ForEach(appState.masApps) { app in
-                        MASAppRow(app: app, outdatedVersion: nil)
+                        MASAppRow(app: app, onUninstall: {
+                            Task { await uninstallMASApp(id: app.id, name: app.name) }
+                        })
                             .tag(app)
                             .contextMenu {
                                 Button {
@@ -111,6 +113,14 @@ struct MASView: View {
                                     }
                                 } label: {
                                     Label("View in App Store", systemImage: "bag")
+                                }
+
+                                Divider()
+
+                                Button(role: .destructive) {
+                                    Task { await uninstallMASApp(id: app.id, name: app.name) }
+                                } label: {
+                                    Label("Uninstall...", systemImage: "trash")
                                 }
                             }
                     }
@@ -277,13 +287,29 @@ struct MASView: View {
         // Refresh the list
         await loadMASApps()
     }
+
+    private func uninstallMASApp(id: Int, name: String) async {
+        appState.currentOperation = "Uninstalling \(name)..."
+        appState.isOperationInProgress = true
+        appState.clearOperationOutput()
+
+        for await line in await brewService.uninstallMASApp(id: id) {
+            appState.appendOperationOutput(line)
+        }
+
+        appState.isOperationInProgress = false
+
+        // Refresh the list
+        await loadMASApps()
+    }
 }
 
 // MARK: - Row Views
 
 struct MASAppRow: View {
     let app: MASApp
-    let outdatedVersion: String?
+    var onUninstall: (() -> Void)?
+    @State private var isHovering = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -309,8 +335,21 @@ struct MASAppRow: View {
             }
 
             Spacer()
+
+            if isHovering, let onUninstall {
+                Button(role: .destructive) {
+                    onUninstall()
+                } label: {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.borderless)
+                .help("Uninstall (requires admin)")
+            }
         }
         .padding(.vertical, 4)
+        .onHover { hovering in
+            isHovering = hovering
+        }
     }
 }
 

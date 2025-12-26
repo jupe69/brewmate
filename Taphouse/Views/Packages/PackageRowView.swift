@@ -5,6 +5,7 @@ struct PackageRowView: View {
     let package: Package
     var isOutdated: Bool = false
     var isPinned: Bool = false
+    var isDependency: Bool = false  // True if package is only installed as a dependency
     var isSelectionMode: Bool = false
     var isSelected: Bool = false
     var onToggleSelection: (() -> Void)?
@@ -51,6 +52,18 @@ struct PackageRowView: View {
                         Image(systemName: "pin.fill")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                    }
+
+                    if isDependency {
+                        Text("dep")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(.quaternary)
+                            .foregroundStyle(.secondary)
+                            .cornerRadius(3)
+                            .help("Installed as a dependency")
                     }
                 }
 
