@@ -22,7 +22,7 @@ So I built **Taphouse** - a fully native macOS app in SwiftUI. Here's what makes
 
 **Complete feature set in one app**
 - Package management (browse, search, install, uninstall, upgrade)
-- Services management (start/stop/restart brew services)
+- Services management with auto-refresh (monitor and control all your brew services)
 - Taps management (add/remove repositories)
 - Brewfile import/export (migrate your setup to a new Mac)
 - Quarantine management (fix "app is damaged" issues)
@@ -36,6 +36,9 @@ So I built **Taphouse** - a fully native macOS app in SwiftUI. Here's what makes
 - Bulk operations (select multiple packages)
 - Favorites and notes on packages
 - Installation history
+
+**Services dashboard**
+If you run things like MySQL, PostgreSQL, Redis, or nginx through Homebrew, you'll love the Services view. See all your services at a glance with running/stopped/error counts, start/stop/restart with one click, and enable auto-refresh to monitor status changes in real-time (configurable from 10 seconds to 5 minutes). No more typing `brew services list` constantly.
 
 **Mac App Store integration**
 Something I haven't seen in any other Homebrew GUI - if you have [mas](https://github.com/mas-cli/mas) installed (`brew install mas`), Taphouse can manage your App Store apps too. Browse installed apps, check for updates, search and install new ones, upgrade all with one click. Your Brewfile exports can even include MAS apps, so you can restore your entire setup (Homebrew + App Store) on a new Mac. It's the unified package manager experience I always wanted.
