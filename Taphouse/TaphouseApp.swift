@@ -107,6 +107,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             updateScheduler = UpdateScheduler()
             updateScheduler?.start()
         }
+
+        // Apply menu bar only mode if enabled
+        applyMenuBarOnlyMode()
+
+        // Listen for menu bar only mode changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(menuBarOnlyModeChanged),
+            name: .menuBarOnlyModeChanged,
+            object: nil
+        )
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -123,6 +134,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let showMenuBarIcon = UserDefaults.standard.bool(forKey: "showMenuBarIcon")
         return !showMenuBarIcon
     }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        // When clicking dock icon or reopening, show main window
+        if !flag {
+            NotificationCenter.default.post(name: .showMainWindow, object: nil)
+        }
+        return true
+    }
+
+    private func applyMenuBarOnlyMode() {
+        let menuBarOnlyMode = UserDefaults.standard.bool(forKey: "menuBarOnlyMode")
+        let isPro = LicenseManager.shared.isPro
+
+        if menuBarOnlyMode && isPro {
+            // Hide dock icon, show only in menu bar
+            NSApp.setActivationPolicy(.accessory)
+
+            // Hide (not close) all windows when switching to menu bar only mode
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                for window in NSApp.windows where window.isVisible {
+                    // Don't touch status bar windows
+                    if !window.className.contains("StatusBar") {
+                        window.orderOut(nil)
+                    }
+                }
+            }
+        } else {
+            // Show in dock normally
+            NSApp.setActivationPolicy(.regular)
+        }
+    }
+
+    @objc private func menuBarOnlyModeChanged(_ notification: Notification) {
+        applyMenuBarOnlyMode()
+    }
 }
 
 // MARK: - Notification Names
@@ -131,6 +177,7 @@ extension Notification.Name {
     static let refreshPackages = Notification.Name("refreshPackages")
     static let updateHomebrew = Notification.Name("updateHomebrew")
     static let menuBarIconSettingChanged = Notification.Name("menuBarIconSettingChanged")
+    static let menuBarOnlyModeChanged = Notification.Name("menuBarOnlyModeChanged")
     static let packagesDidUpdate = Notification.Name("packagesDidUpdate")
 }
 
@@ -168,6 +215,7 @@ struct GeneralSettingsView: View {
     @AppStorage("confirmBeforeUninstall") private var confirmBeforeUninstall = true
     @AppStorage("showDependencies") private var showDependencies = true
     @AppStorage("showMenuBarIcon") private var showMenuBarIcon = true
+    @AppStorage("menuBarOnlyMode") private var menuBarOnlyMode = false
 
     // Services auto-refresh settings
     @AppStorage("servicesAutoRefresh") private var servicesAutoRefresh = false
@@ -196,11 +244,27 @@ struct GeneralSettingsView: View {
                             object: nil,
                             userInfo: ["enabled": newValue]
                         )
+                        // If disabling menu bar, also disable menu bar only mode
+                        if !newValue && menuBarOnlyMode {
+                            menuBarOnlyMode = false
+                            NotificationCenter.default.post(name: .menuBarOnlyModeChanged, object: nil)
+                        }
                     }
 
-                Text("Keep Taphouse accessible from the menu bar with quick actions and update notifications")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                if showMenuBarIcon && isPro {
+                    Toggle("Menu bar only (hide dock icon)", isOn: $menuBarOnlyMode)
+                        .onChange(of: menuBarOnlyMode) { _, _ in
+                            NotificationCenter.default.post(name: .menuBarOnlyModeChanged, object: nil)
+                        }
+
+                    Text("Run Taphouse as a menu bar app only. The dock icon will be hidden and the app will be accessible from the menu bar. Use \"Open Taphouse\" from the menu bar to show the main window.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("Keep Taphouse accessible from the menu bar with quick actions and update notifications")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
 
                 if !isPro {
                     proFeatureNote

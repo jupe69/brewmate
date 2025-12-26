@@ -10,6 +10,7 @@ final class MenuBarManager {
     private var updateTimer: Timer?
 
     var outdatedPackages: [OutdatedPackage] = []
+    var services: [BrewServiceInfo] = []
     var isCheckingUpdates: Bool = false
     var showMenuBarIcon: Bool {
         didSet {
@@ -112,6 +113,70 @@ final class MenuBarManager {
             }
         }
 
+        // Services section
+        if !services.isEmpty {
+            menu.addItem(NSMenuItem.separator())
+
+            let servicesMenu = NSMenu()
+            let servicesItem = NSMenuItem(title: "Services", action: nil, keyEquivalent: "")
+            servicesItem.submenu = servicesMenu
+
+            // Group services by status
+            let runningServices = services.filter { $0.status.isActive }
+            let stoppedServices = services.filter { !$0.status.isActive }
+
+            // Running services
+            if !runningServices.isEmpty {
+                let runningHeader = NSMenuItem(title: "Running (\(runningServices.count))", action: nil, keyEquivalent: "")
+                runningHeader.isEnabled = false
+                servicesMenu.addItem(runningHeader)
+
+                for service in runningServices.prefix(10) {
+                    let serviceSubmenu = NSMenu()
+
+                    let stopItem = NSMenuItem(title: "Stop", action: #selector(stopService(_:)), keyEquivalent: "")
+                    stopItem.target = self
+                    stopItem.representedObject = service.name
+                    stopItem.image = NSImage(systemSymbolName: "stop.fill", accessibilityDescription: nil)
+                    serviceSubmenu.addItem(stopItem)
+
+                    let restartItem = NSMenuItem(title: "Restart", action: #selector(restartService(_:)), keyEquivalent: "")
+                    restartItem.target = self
+                    restartItem.representedObject = service.name
+                    restartItem.image = NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: nil)
+                    serviceSubmenu.addItem(restartItem)
+
+                    let serviceItem = NSMenuItem(title: service.name, action: nil, keyEquivalent: "")
+                    serviceItem.submenu = serviceSubmenu
+                    serviceItem.image = NSImage(systemSymbolName: "circle.fill", accessibilityDescription: nil)
+                    serviceItem.image?.isTemplate = false
+                    // Tint the circle green for running
+                    servicesMenu.addItem(serviceItem)
+                }
+            }
+
+            // Stopped services
+            if !stoppedServices.isEmpty {
+                if !runningServices.isEmpty {
+                    servicesMenu.addItem(NSMenuItem.separator())
+                }
+
+                let stoppedHeader = NSMenuItem(title: "Stopped (\(stoppedServices.count))", action: nil, keyEquivalent: "")
+                stoppedHeader.isEnabled = false
+                servicesMenu.addItem(stoppedHeader)
+
+                for service in stoppedServices.prefix(10) {
+                    let startItem = NSMenuItem(title: service.name, action: #selector(startService(_:)), keyEquivalent: "")
+                    startItem.target = self
+                    startItem.representedObject = service.name
+                    startItem.image = NSImage(systemSymbolName: "play.fill", accessibilityDescription: nil)
+                    servicesMenu.addItem(startItem)
+                }
+            }
+
+            menu.addItem(servicesItem)
+        }
+
         menu.addItem(NSMenuItem.separator())
 
         // Open Taphouse
@@ -179,17 +244,78 @@ final class MenuBarManager {
         }
     }
 
-    @objc private func openMainWindow() {
-        NSApp.activate(ignoringOtherApps: true)
+    @objc private func startService(_ sender: NSMenuItem) {
+        guard let serviceName = sender.representedObject as? String else { return }
+        Task {
+            do {
+                try await brewService.controlService(name: serviceName, action: .start)
+                await refreshServices()
+            } catch {
+                print("Failed to start service: \(error)")
+            }
+        }
+    }
 
-        // Bring all windows to front
-        for window in NSApp.windows {
-            window.makeKeyAndOrderFront(nil)
+    @objc private func stopService(_ sender: NSMenuItem) {
+        guard let serviceName = sender.representedObject as? String else { return }
+        Task {
+            do {
+                try await brewService.controlService(name: serviceName, action: .stop)
+                await refreshServices()
+            } catch {
+                print("Failed to stop service: \(error)")
+            }
+        }
+    }
+
+    @objc private func restartService(_ sender: NSMenuItem) {
+        guard let serviceName = sender.representedObject as? String else { return }
+        Task {
+            do {
+                try await brewService.controlService(name: serviceName, action: .restart)
+                await refreshServices()
+            } catch {
+                print("Failed to restart service: \(error)")
+            }
+        }
+    }
+
+    @objc private func openMainWindow() {
+        // If in menu bar only mode, switch back to regular mode to show dock icon
+        let menuBarOnlyMode = UserDefaults.standard.bool(forKey: "menuBarOnlyMode")
+        if menuBarOnlyMode {
+            NSApp.setActivationPolicy(.regular)
         }
 
-        // If no windows are visible, create a new one
-        if NSApp.windows.isEmpty || NSApp.windows.allSatisfy({ !$0.isVisible }) {
-            NotificationCenter.default.post(name: .showMainWindow, object: nil)
+        // Activate the app
+        NSApp.activate(ignoringOtherApps: true)
+
+        // Find the main content window and show it
+        var foundWindow = false
+        for window in NSApp.windows {
+            // Skip status bar windows, panels, and other system windows
+            let className = window.className
+            if className.contains("StatusBar") ||
+               className.contains("Panel") ||
+               className.contains("TUINS") ||
+               window.level == .statusBar {
+                continue
+            }
+
+            // Show and focus the window
+            window.makeKeyAndOrderFront(nil)
+            foundWindow = true
+            break  // Only need to show one main window
+        }
+
+        // If no suitable window found, we need to create one
+        // This happens if the app was launched directly into menu bar only mode
+        if !foundWindow {
+            // Temporarily disable menu bar only mode to allow window creation
+            if menuBarOnlyMode {
+                UserDefaults.standard.set(false, forKey: "menuBarOnlyMode")
+                NotificationCenter.default.post(name: .menuBarOnlyModeChanged, object: nil)
+            }
         }
     }
 
@@ -208,6 +334,21 @@ final class MenuBarManager {
         }
     }
 
+    func refreshServices() async {
+        do {
+            services = try await brewService.getServices()
+            updateMenu()
+        } catch {
+            print("Failed to get services: \(error)")
+        }
+    }
+
+    func refreshAll() async {
+        async let packages: () = refreshOutdatedPackages()
+        async let servicesRefresh: () = refreshServices()
+        _ = await (packages, servicesRefresh)
+    }
+
     private var outdatedCount: Int {
         outdatedPackages.count
     }
@@ -218,13 +359,13 @@ final class MenuBarManager {
         // Check for updates every 30 minutes
         updateTimer = Timer.scheduledTimer(withTimeInterval: 1800, repeats: true) { [weak self] _ in
             Task { @MainActor in
-                await self?.refreshOutdatedPackages()
+                await self?.refreshAll()
             }
         }
 
         // Do an initial check
         Task {
-            await refreshOutdatedPackages()
+            await refreshAll()
         }
     }
 

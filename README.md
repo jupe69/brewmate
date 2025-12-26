@@ -112,6 +112,8 @@ Taphouse offers a **free version** with essential functionality, plus a **Pro up
 - **Status Icon** - Optional menu bar icon with update badge
 - **Quick Actions** - Check for updates or upgrade all from the menu bar
 - **Outdated List** - See outdated packages without opening the main window
+- **Services Control** - Start, stop, and restart Homebrew services directly from the menu bar
+- **Menu Bar Only Mode** - Run Taphouse as a menu bar app only, hiding the dock icon completely
 
 #### Background Features
 - **Automatic Update Checks** - Configurable hourly/daily/weekly checks
