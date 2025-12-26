@@ -1010,6 +1010,93 @@ actor BrewService: BrewServiceProtocol {
             }
         }
     }
+
+    // MARK: - Package Info
+
+    /// Gets the description for a package
+    func getPackageDescription(name: String, isCask: Bool) async throws -> String {
+        let result: ShellResult
+        if isCask {
+            result = try await brew("info", "--cask", name, "--json=v2")
+        } else {
+            result = try await brew("info", name, "--json=v2")
+        }
+
+        guard result.isSuccess, let data = result.stdout.data(using: .utf8) else {
+            return ""
+        }
+
+        if isCask {
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let casks = json["casks"] as? [[String: Any]],
+               let cask = casks.first,
+               let desc = cask["desc"] as? String {
+                return desc
+            }
+        } else {
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let formulae = json["formulae"] as? [[String: Any]],
+               let formula = formulae.first,
+               let desc = formula["desc"] as? String {
+                return desc
+            }
+        }
+
+        return ""
+    }
+
+    // MARK: - Discover (Analytics)
+
+    /// Fetches popular packages from Homebrew analytics
+    func getPopularPackages() async throws -> [PopularPackage] {
+        async let formulaeTask = fetchAnalytics(from: "https://formulae.brew.sh/api/analytics/install-on-request/30d.json", isCask: false)
+        async let casksTask = fetchAnalytics(from: "https://formulae.brew.sh/api/analytics/cask-install/30d.json", isCask: true)
+
+        let formulae = (try? await formulaeTask) ?? []
+        let casks = (try? await casksTask) ?? []
+
+        // Combine and sort by install count
+        return (formulae + casks).sorted { $0.installCount > $1.installCount }
+    }
+
+    /// Fetches analytics from Homebrew API
+    private func fetchAnalytics(from urlString: String, isCask: Bool) async throws -> [PopularPackage] {
+        guard let url = URL(string: urlString) else {
+            return []
+        }
+
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let response = try JSONDecoder().decode(AnalyticsResponse.self, from: data)
+
+        // Take top 100 packages
+        return response.items.prefix(100).map { item in
+            PopularPackage(
+                name: item.packageName,
+                installCount: item.installCount,
+                rank: item.number,
+                isCask: isCask,
+                category: PackageCategory.category(for: item.packageName)
+            )
+        }
+    }
+
+    /// Gets popular packages grouped by category
+    func getPopularPackagesByCategory() async throws -> [PackageCategory: [PopularPackage]] {
+        let packages = try await getPopularPackages()
+
+        var grouped: [PackageCategory: [PopularPackage]] = [:]
+
+        for package in packages {
+            grouped[package.category, default: []].append(package)
+        }
+
+        // Sort each category by install count and limit to top items
+        for (category, items) in grouped {
+            grouped[category] = Array(items.sorted { $0.installCount > $1.installCount }.prefix(15))
+        }
+
+        return grouped
+    }
 }
 
 // MARK: - Error Types

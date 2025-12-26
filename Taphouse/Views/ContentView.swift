@@ -46,6 +46,8 @@ struct ContentView: View {
             SidebarView(appState: appState)
         } content: {
             switch appState.selectedSection {
+            case .discover:
+                DiscoverView(appState: appState)
             case .search:
                 SearchView(appState: appState)
             case .taps:
@@ -66,7 +68,7 @@ struct ContentView: View {
                 PackageListView(appState: appState)
             }
         } detail: {
-            let showsDetailPane = ![.search, .taps, .brewfile, .diagnostics, .cleanup, .quarantine, .history, .appStore].contains(appState.selectedSection)
+            let showsDetailPane = ![.discover, .search, .taps, .brewfile, .diagnostics, .cleanup, .quarantine, .history, .appStore].contains(appState.selectedSection)
 
             if showsDetailPane {
                 if let package = appState.selectedPackage {

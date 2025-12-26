@@ -6,8 +6,9 @@ struct SidebarView: View {
 
     var body: some View {
         List(selection: $appState.selectedSection) {
-            // Main Section
+            // Discover & Search
             Section {
+                SidebarRow(section: .discover, badge: nil)
                 SidebarRow(section: .search, badge: nil)
             }
 

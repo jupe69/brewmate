@@ -3,6 +3,7 @@ import SwiftUI
 
 /// Represents the currently selected section in the sidebar
 enum SidebarSection: String, CaseIterable, Identifiable {
+    case discover = "Discover"
     case search = "Search"
     case installed = "Installed"
     case formulae = "Formulae"
@@ -23,6 +24,7 @@ enum SidebarSection: String, CaseIterable, Identifiable {
 
     var systemImage: String {
         switch self {
+        case .discover: return "sparkles"
         case .search: return "magnifyingglass"
         case .formulae: return "terminal"
         case .casks: return "app.badge"
@@ -43,6 +45,7 @@ enum SidebarSection: String, CaseIterable, Identifiable {
 
     var description: String {
         switch self {
+        case .discover: return "Popular packages by category"
         case .search: return "Find and install packages"
         case .formulae: return "Command-line packages"
         case .casks: return "GUI applications"
@@ -196,7 +199,7 @@ final class AppState {
         case .pinned:
             // Return only pinned packages
             packages = allInstalledPackages.filter { pinnedPackages.contains($0.packageName) }
-        case .services, .taps, .cleanup, .diagnostics, .brewfile, .quarantine, .history, .appStore:
+        case .services, .taps, .cleanup, .diagnostics, .brewfile, .quarantine, .history, .appStore, .discover:
             packages = []
         }
 

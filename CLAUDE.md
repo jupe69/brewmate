@@ -45,18 +45,6 @@ Taphouse is a native macOS GUI application for Homebrew package management. Buil
 - Dependency conflict resolution
 - Automated testing integration
 
-### TODO: Re-add Keychain for Trial Storage
-Currently trial start date is stored in UserDefaults, which can be bypassed by deleting app preferences.
-Once the app is properly code-signed with a Developer ID certificate, re-add Keychain storage to prevent
-trial bypass on reinstall. The `KeychainManager.swift` was removed because unsigned apps prompt for
-Keychain access on every launch, which is a poor user experience.
-
-To re-implement:
-1. Create `Core/KeychainManager.swift` with `storeTrialStartDate()` and `getTrialStartDate()` methods
-2. Update `LicenseManager.startTrialIfNeeded()` to check Keychain first, then UserDefaults
-3. Update `LicenseManager.checkTrialStatus()` similarly
-4. Store trial date in both Keychain (persistent) and UserDefaults (fallback)
-
 ## Project Structure
 ```
 Taphouse/
@@ -68,6 +56,7 @@ Taphouse/
 │   ├── ShellExecutor.swift        # Async shell command execution
 │   ├── BrewPathResolver.swift     # Detects Homebrew installation path
 │   ├── BrewService.swift          # Homebrew CLI wrapper (actor)
+│   ├── KeychainManager.swift      # Secure trial storage in Keychain
 │   ├── BrewService+Diagnostics.swift # Diagnostics extension
 │   ├── MenuBarManager.swift       # Menu bar icon and menu
 │   ├── UpdateScheduler.swift      # Background update checks

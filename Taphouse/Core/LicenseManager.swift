@@ -102,10 +102,15 @@ final class LicenseManager {
         // Don't start trial if we have a license
         guard licenseInfo == nil else { return }
 
-        // Check UserDefaults for existing trial
-        if let trialStart = UserDefaults.standard.object(forKey: DefaultsKeys.trialStartDate) as? Date {
+        // Check Keychain first (most persistent, survives reinstall)
+        if let trialStart = KeychainManager.getTrialStartDate() {
             let trialEnd = Calendar.current.date(byAdding: .day, value: trialDurationDays, to: trialStart)!
             trialInfo = TrialInfo(startDate: trialStart, expirationDate: trialEnd)
+
+            // Sync to UserDefaults if missing
+            if UserDefaults.standard.object(forKey: DefaultsKeys.trialStartDate) == nil {
+                UserDefaults.standard.set(trialStart, forKey: DefaultsKeys.trialStartDate)
+            }
 
             if Date() < trialEnd {
                 licenseStatus = .trial
@@ -115,10 +120,27 @@ final class LicenseManager {
             return
         }
 
-        // Start new trial
+        // Fall back to UserDefaults (for users upgrading from older version)
+        if let trialStart = UserDefaults.standard.object(forKey: DefaultsKeys.trialStartDate) as? Date {
+            let trialEnd = Calendar.current.date(byAdding: .day, value: trialDurationDays, to: trialStart)!
+            trialInfo = TrialInfo(startDate: trialStart, expirationDate: trialEnd)
+
+            // Migrate to Keychain for persistence
+            KeychainManager.storeTrialStartDate(trialStart)
+
+            if Date() < trialEnd {
+                licenseStatus = .trial
+            } else {
+                licenseStatus = .expired
+            }
+            return
+        }
+
+        // Start new trial - store in both Keychain and UserDefaults
         let trialStart = Date()
         let trialEnd = Calendar.current.date(byAdding: .day, value: trialDurationDays, to: trialStart)!
 
+        KeychainManager.storeTrialStartDate(trialStart)
         UserDefaults.standard.set(trialStart, forKey: DefaultsKeys.trialStartDate)
 
         trialInfo = TrialInfo(startDate: trialStart, expirationDate: trialEnd)
@@ -129,9 +151,18 @@ final class LicenseManager {
     func checkTrialStatus() {
         guard licenseInfo == nil else { return }
 
-        if let trialStart = UserDefaults.standard.object(forKey: DefaultsKeys.trialStartDate) as? Date {
+        // Check Keychain first, then UserDefaults
+        let trialStart = KeychainManager.getTrialStartDate()
+            ?? UserDefaults.standard.object(forKey: DefaultsKeys.trialStartDate) as? Date
+
+        if let trialStart = trialStart {
             let trialEnd = Calendar.current.date(byAdding: .day, value: trialDurationDays, to: trialStart)!
             trialInfo = TrialInfo(startDate: trialStart, expirationDate: trialEnd)
+
+            // Ensure Keychain has the value for persistence
+            if KeychainManager.getTrialStartDate() == nil {
+                KeychainManager.storeTrialStartDate(trialStart)
+            }
 
             if Date() < trialEnd {
                 licenseStatus = .trial

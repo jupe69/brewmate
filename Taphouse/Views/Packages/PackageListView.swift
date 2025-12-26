@@ -39,6 +39,8 @@ struct PackageListView: View {
                 historyView
             case .appStore:
                 EmptyView() // Handled by MASView
+            case .discover:
+                EmptyView() // Handled by DiscoverView
             }
         }
         .navigationTitle(appState.selectedSection.rawValue)
