@@ -169,7 +169,18 @@ struct GeneralSettingsView: View {
     @AppStorage("showDependencies") private var showDependencies = true
     @AppStorage("showMenuBarIcon") private var showMenuBarIcon = true
 
+    // Services auto-refresh settings
+    @AppStorage("servicesAutoRefresh") private var servicesAutoRefresh = false
+    @AppStorage("servicesRefreshInterval") private var servicesRefreshInterval: Double = 30
+
     @StateObject private var updateScheduler = UpdateScheduler()
+
+    private let refreshIntervals: [(String, Double)] = [
+        ("10 seconds", 10),
+        ("30 seconds", 30),
+        ("1 minute", 60),
+        ("5 minutes", 300)
+    ]
 
     private var isPro: Bool { LicenseManager.shared.isPro }
 
@@ -204,6 +215,23 @@ struct GeneralSettingsView: View {
                 Toggle("Show dependencies in package details", isOn: $showDependencies)
             } header: {
                 Text("Behavior")
+            }
+
+            Section {
+                Toggle("Auto-refresh services list", isOn: $servicesAutoRefresh)
+
+                if servicesAutoRefresh {
+                    Picker("Refresh interval", selection: $servicesRefreshInterval) {
+                        ForEach(refreshIntervals, id: \.1) { option in
+                            Text(option.0).tag(option.1)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+            } header: {
+                Text("Services")
+            } footer: {
+                Text("Automatically refresh the services list to monitor status changes.")
             }
 
             Section {

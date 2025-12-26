@@ -64,11 +64,13 @@ struct ContentView: View {
                 HistoryView(appState: appState)
             case .appStore:
                 MASView(appState: appState)
+            case .services:
+                ServicesView(appState: appState)
             default:
                 PackageListView(appState: appState)
             }
         } detail: {
-            let showsDetailPane = ![.discover, .search, .taps, .brewfile, .diagnostics, .cleanup, .quarantine, .history, .appStore].contains(appState.selectedSection)
+            let showsDetailPane = ![.discover, .search, .taps, .brewfile, .diagnostics, .cleanup, .quarantine, .history, .appStore, .services].contains(appState.selectedSection)
 
             if showsDetailPane {
                 if let package = appState.selectedPackage {

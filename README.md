@@ -52,9 +52,12 @@ Taphouse offers a **free version** with essential functionality, plus a **Pro up
 - **Live Progress Output** - Watch installation and upgrade progress in real-time
 
 #### Services Management
-- **View All Services** - See all Homebrew-managed background services
-- **Service Status** - Color-coded status indicators (running, stopped, error)
+- **Status Overview** - See running, stopped, and error counts at a glance
+- **View All Services** - See all Homebrew-managed background services grouped by status
+- **Service Status** - Color-coded status indicators (running, stopped, scheduled, error)
 - **Start/Stop/Restart** - Control services directly from the app
+- **Auto-Refresh** - Monitor services with configurable refresh intervals (10s to 5min)
+- **Context Menus** - Right-click for quick actions and "Show in Finder"
 
 #### Diagnostics
 - **Brew Doctor** - Run system health checks with streaming output
@@ -234,6 +237,7 @@ Access preferences via **Taphouse > Settings** (Cmd+,):
 - Confirm before uninstalling packages
 - Show dependencies in package details
 - Show menu bar icon
+- Services auto-refresh with configurable interval
 
 ### Updates
 - Update check frequency (daily/weekly/monthly)
