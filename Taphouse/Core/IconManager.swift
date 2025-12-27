@@ -6,6 +6,23 @@ import SwiftUI
 actor IconManager {
     static let shared = IconManager()
 
+    // MARK: - Rate Limiting
+
+    /// Maximum concurrent API requests
+    private let maxConcurrentRequests = 3
+
+    /// Current number of active API requests
+    private var activeRequests = 0
+
+    /// Queue of waiting requests
+    private var waitingRequests: [CheckedContinuation<Void, Never>] = []
+
+    /// Set of packages we've already tried and failed to get icons for (negative cache)
+    private var failedLookups: Set<String> = []
+
+    /// Request timeout in seconds
+    private let requestTimeout: TimeInterval = 5.0
+
     // MARK: - Cache
 
     private var memoryCache: [String: NSImage] = [:]
@@ -18,6 +35,29 @@ actor IconManager {
             try? fileManager.createDirectory(at: iconCache, withIntermediateDirectories: true)
         }
         return iconCache
+    }
+
+    // MARK: - Rate Limiting Helpers
+
+    private func acquireSlot() async {
+        if activeRequests < maxConcurrentRequests {
+            activeRequests += 1
+            return
+        }
+
+        // Wait for a slot
+        await withCheckedContinuation { continuation in
+            waitingRequests.append(continuation)
+        }
+        activeRequests += 1
+    }
+
+    private func releaseSlot() {
+        activeRequests -= 1
+        if let next = waitingRequests.first {
+            waitingRequests.removeFirst()
+            next.resume()
+        }
     }
 
     // MARK: - Public API
@@ -36,27 +76,37 @@ actor IconManager {
             return diskCached
         }
 
-        // For formulae, return terminal icon
+        // For formulae, return nil (will use fallback icon)
         if !isCask {
-            let terminalIcon = NSImage(systemSymbolName: "terminal.fill", accessibilityDescription: "CLI tool")
-            return terminalIcon
+            return nil
+        }
+
+        // Check if we've already failed to find this icon
+        if failedLookups.contains(cacheKey) {
+            return nil
         }
 
         // For casks, try multiple sources
         var icon: NSImage?
 
-        // 1. Try installed app bundle
-        icon = await getInstalledAppIcon(for: packageName)
+        // 1. Try installed app bundle first (fast, no network)
+        icon = getInstalledAppIconSync(for: packageName)
 
-        // 2. Try iTunes Search API
+        // 2. Try iTunes Search API (with rate limiting)
         if icon == nil {
-            icon = await fetchiTunesIcon(for: packageName)
+            await acquireSlot()
+            defer { Task { await releaseSlot() } }
+
+            icon = await fetchiTunesIconWithTimeout(for: packageName)
         }
 
         // Cache the result
         if let icon = icon {
             memoryCache[cacheKey] = icon
             saveToDiskCache(image: icon, key: cacheKey)
+        } else {
+            // Remember that we failed so we don't try again
+            failedLookups.insert(cacheKey)
         }
 
         return icon
@@ -77,27 +127,37 @@ actor IconManager {
             return diskCached
         }
 
-        // Fetch from iTunes API
-        if let icon = await fetchiTunesIconById(appId: appId) {
+        // Check negative cache
+        if failedLookups.contains(cacheKey) {
+            return nil
+        }
+
+        // Acquire rate limit slot
+        await acquireSlot()
+        defer { Task { await releaseSlot() } }
+
+        // Fetch from iTunes API with timeout
+        if let icon = await fetchiTunesIconByIdWithTimeout(appId: appId) {
             memoryCache[cacheKey] = icon
             saveToDiskCache(image: icon, key: cacheKey)
             return icon
         }
 
-        // Fallback: try installed app
-        if let icon = await getInstalledAppIcon(for: appName) {
+        // Fallback: try installed app (sync, no network)
+        if let icon = getInstalledAppIconSync(for: appName) {
             memoryCache[cacheKey] = icon
             saveToDiskCache(image: icon, key: cacheKey)
             return icon
         }
 
+        failedLookups.insert(cacheKey)
         return nil
     }
 
     /// Preload icons for a list of packages (for better UX)
     func preloadIcons(for packages: [(name: String, isCask: Bool)]) async {
         await withTaskGroup(of: Void.self) { group in
-            for package in packages.prefix(20) { // Limit concurrent requests
+            for package in packages.prefix(10) { // Limit to 10 concurrent
                 group.addTask {
                     _ = await self.getIcon(for: package.name, isCask: package.isCask)
                 }
@@ -107,6 +167,45 @@ actor IconManager {
 
     // MARK: - iTunes API
 
+    private func fetchiTunesIconWithTimeout(for appName: String) async -> NSImage? {
+        await withTaskGroup(of: NSImage?.self) { group in
+            group.addTask {
+                await self.fetchiTunesIcon(for: appName)
+            }
+
+            group.addTask {
+                try? await Task.sleep(nanoseconds: UInt64(self.requestTimeout * 1_000_000_000))
+                return nil
+            }
+
+            // Return first result (either the icon or timeout)
+            for await result in group {
+                group.cancelAll()
+                return result
+            }
+            return nil
+        }
+    }
+
+    private func fetchiTunesIconByIdWithTimeout(appId: String) async -> NSImage? {
+        await withTaskGroup(of: NSImage?.self) { group in
+            group.addTask {
+                await self.fetchiTunesIconById(appId: appId)
+            }
+
+            group.addTask {
+                try? await Task.sleep(nanoseconds: UInt64(self.requestTimeout * 1_000_000_000))
+                return nil
+            }
+
+            for await result in group {
+                group.cancelAll()
+                return result
+            }
+            return nil
+        }
+    }
+
     private func fetchiTunesIcon(for appName: String) async -> NSImage? {
         // Clean up the name for search (remove common suffixes)
         let searchName = appName
@@ -114,7 +213,7 @@ actor IconManager {
             .replacingOccurrences(of: "_", with: " ")
 
         guard let encodedName = searchName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "https://itunes.apple.com/search?term=\(encodedName)&entity=macSoftware&limit=5&country=us") else {
+              let url = URL(string: "https://itunes.apple.com/search?term=\(encodedName)&entity=macSoftware&limit=3&country=us") else {
             return nil
         }
 
@@ -190,6 +289,26 @@ actor IconManager {
     }
 
     // MARK: - Local App Icons
+
+    /// Synchronous check for installed app icon (fast, no network, no async directory search)
+    private func getInstalledAppIconSync(for packageName: String) -> NSImage? {
+        // Common app locations - check these quickly without async
+        let possiblePaths = [
+            "/Applications/\(packageName).app",
+            "/Applications/\(packageName.capitalized).app",
+            "/Applications/\(formatAppName(packageName)).app",
+            NSHomeDirectory() + "/Applications/\(packageName).app",
+            NSHomeDirectory() + "/Applications/\(formatAppName(packageName)).app"
+        ]
+
+        for path in possiblePaths {
+            if fileManager.fileExists(atPath: path) {
+                return NSWorkspace.shared.icon(forFile: path)
+            }
+        }
+
+        return nil
+    }
 
     private func getInstalledAppIcon(for packageName: String) async -> NSImage? {
         // Common app locations
