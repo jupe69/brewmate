@@ -354,14 +354,7 @@ struct MediumPackageCard: View {
         VStack(alignment: .leading, spacing: 12) {
             // Icon and type badge
             HStack(alignment: .top) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(package.isCask ? Color.blue.opacity(0.1) : Color.green.opacity(0.1))
-                        .frame(width: 48, height: 48)
-                    Image(systemName: package.isCask ? "app.fill" : "terminal.fill")
-                        .font(.title2)
-                        .foregroundStyle(package.isCask ? .blue : .green)
-                }
+                AppIconView(packageName: package.name, isCask: package.isCask, size: 48)
 
                 Spacer()
 
@@ -448,14 +441,7 @@ struct LargePackageCard: View {
     var body: some View {
         HStack(spacing: 16) {
             // Icon
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(package.isCask ? Color.blue.opacity(0.1) : Color.green.opacity(0.1))
-                    .frame(width: 56, height: 56)
-                Image(systemName: package.isCask ? "app.fill" : "terminal.fill")
-                    .font(.title)
-                    .foregroundStyle(package.isCask ? .blue : .green)
-            }
+            AppIconView(packageName: package.name, isCask: package.isCask, size: 56)
 
             // Info
             VStack(alignment: .leading, spacing: 4) {

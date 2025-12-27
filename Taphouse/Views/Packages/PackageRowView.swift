@@ -29,11 +29,8 @@ struct PackageRowView: View {
                 .buttonStyle(.plain)
             }
 
-            // Package type icon
-            Image(systemName: package.isCask ? "app.badge" : "terminal")
-                .font(.title3)
-                .foregroundStyle(package.isCask ? .purple : .blue)
-                .frame(width: 24)
+            // Package icon
+            AppIconView(packageName: package.name, isCask: package.isCask, size: 28)
 
             // Package info
             VStack(alignment: .leading, spacing: 2) {

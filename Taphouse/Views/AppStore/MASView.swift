@@ -313,10 +313,7 @@ struct MASAppRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "app.fill")
-                .font(.title2)
-                .foregroundStyle(.blue)
-                .frame(width: 32, height: 32)
+            MASAppIconView(appId: String(app.id), appName: app.name, size: 32)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(app.name)
@@ -360,10 +357,7 @@ struct OutdatedMASAppRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "app.fill")
-                .font(.title2)
-                .foregroundStyle(.orange)
-                .frame(width: 32, height: 32)
+            MASAppIconView(appId: String(app.id), appName: app.name, size: 32)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(app.name)
@@ -412,10 +406,7 @@ struct MASSearchResultRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "app.badge.fill")
-                .font(.title2)
-                .foregroundStyle(.purple)
-                .frame(width: 32, height: 32)
+            MASAppIconView(appId: String(result.id), appName: result.name, size: 32)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(result.name)
