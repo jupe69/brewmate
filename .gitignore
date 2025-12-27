@@ -42,3 +42,8 @@ Thumbs.db
 
 # Claude Code local settings
 .claude/
+
+# Build artifacts
+Taphouse1/
+Taphouse2/
+build/
