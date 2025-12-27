@@ -668,7 +668,8 @@ actor BrewService: BrewServiceProtocol {
         let result = try await brew("tap-info", "--json", "--installed")
 
         guard result.isSuccess else {
-            throw BrewError.commandFailed(result.stderr)
+            let errorMsg = result.stderr.isEmpty ? result.stdout : result.stderr
+            throw BrewError.commandFailed(errorMsg.isEmpty ? "Unknown error (exit code: \(result.exitCode))" : errorMsg)
         }
 
         guard let data = result.stdout.data(using: .utf8) else {
@@ -676,7 +677,11 @@ actor BrewService: BrewServiceProtocol {
         }
 
         let decoder = JSONDecoder()
-        return try decoder.decode([TapInfo].self, from: data)
+        do {
+            return try decoder.decode([TapInfo].self, from: data)
+        } catch {
+            throw BrewError.commandFailed("Failed to parse tap info: \(error.localizedDescription)")
+        }
     }
 
     func addTap(name: String) async throws {
@@ -854,17 +859,15 @@ actor BrewService: BrewServiceProtocol {
 
     private func extractQuarantineDate(from xattrOutput: String) -> Date? {
         // Quarantine attribute format: 0083;XXXXXXXX;Browser;UUID
-        // Where XXXXXXXX is hex timestamp
+        // Where XXXXXXXX is hex timestamp (Unix time - seconds since 1970)
         let components = xattrOutput.components(separatedBy: ";")
         guard components.count >= 2 else { return nil }
 
         let hexTimestamp = components[1].trimmingCharacters(in: .whitespacesAndNewlines)
         guard let intTimestamp = Int(hexTimestamp, radix: 16) else { return nil }
-        let timestamp = Double(intTimestamp)
 
-        // Convert from Mac absolute time (seconds since 2001-01-01) to Unix time
-        let macEpoch = Date(timeIntervalSinceReferenceDate: 0)
-        return Date(timeInterval: timestamp, since: macEpoch)
+        // The timestamp is Unix time (seconds since 1970-01-01)
+        return Date(timeIntervalSince1970: Double(intTimestamp))
     }
 
     // MARK: - MAS (Mac App Store) Operations

@@ -138,6 +138,8 @@ struct DiagnosticsView: View {
             Text(line)
                 .foregroundStyle(lineColor(for: line))
                 .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(nil)
+                .textSelection(.enabled)
         }
     }
 
