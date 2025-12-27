@@ -9,6 +9,7 @@ APP_NAME="Taphouse"
 TEAM_ID="CN8K2J7G4H"
 CERT_NAME="Developer ID Application: ATHANASIOS CHONIAS (CN8K2J7G4H)"
 KEYCHAIN_PROFILE="notarytool-profile"
+SPARKLE_BIN="$HOME/Downloads/Sparkle-2.8.1/bin"
 
 # Paths
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -116,8 +117,49 @@ xcrun notarytool submit "$DMG_PATH" \
 # Staple DMG
 xcrun stapler staple "$DMG_PATH"
 
-# Done
+# Create Sparkle update archive
+echo "✨ Creating Sparkle update archive..."
+APPCAST_DIR="$BUILD_DIR/appcast"
+mkdir -p "$APPCAST_DIR"
+
+# Create a ZIP for Sparkle updates (separate from notarization zip)
+cd "$EXPORT_PATH"
+ditto -c -k --keepParent "$APP_NAME.app" "$APPCAST_DIR/$APP_NAME.zip"
+
+# Sign the update with Sparkle EdDSA key
+echo "🔐 Signing update for Sparkle..."
+SIGNATURE=$("$SPARKLE_BIN/sign_update" "$APPCAST_DIR/$APP_NAME.zip")
+echo "Sparkle signature: $SIGNATURE"
+
+# Get version from the app
+VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist")
+BUILD=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$APP_PATH/Contents/Info.plist")
+
+# Generate appcast entry
+echo "📝 Generating appcast entry..."
+cat > "$APPCAST_DIR/appcast-entry.xml" << EOF
+<!-- Add this item to your appcast.xml -->
+<item>
+    <title>Version $VERSION</title>
+    <sparkle:version>$BUILD</sparkle:version>
+    <sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>
+    <pubDate>$(date -R)</pubDate>
+    <enclosure url="https://taphouse.multimodalsolutions.gr/downloads/Taphouse.zip"
+               $SIGNATURE
+               type="application/octet-stream"/>
+</item>
+EOF
+
 echo ""
 echo "✅ Build complete!"
-echo "📍 DMG: $DMG_PATH"
-echo "📦 Size: $(du -h "$DMG_PATH" | cut -f1)"
+echo ""
+echo "📍 DMG for distribution: $DMG_PATH"
+echo "📦 DMG Size: $(du -h "$DMG_PATH" | cut -f1)"
+echo ""
+echo "📍 Sparkle update ZIP: $APPCAST_DIR/$APP_NAME.zip"
+echo "📝 Appcast entry: $APPCAST_DIR/appcast-entry.xml"
+echo ""
+echo "📋 Next steps:"
+echo "   1. Upload DMG to your website for new users"
+echo "   2. Upload Taphouse.zip to https://taphouse.multimodalsolutions.gr/downloads/"
+echo "   3. Update appcast.xml with the entry from appcast-entry.xml"
