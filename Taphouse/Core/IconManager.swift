@@ -59,6 +59,11 @@ actor IconManager {
         return iconCache
     }
 
+    /// Bundled icons directory in app bundle (icons are in Contents/Resources/)
+    private var bundledIconsDirectory: URL? {
+        Bundle.main.resourceURL
+    }
+
     // MARK: - Rate Limiting Helpers
 
     private func acquireSlot() async {
@@ -391,6 +396,14 @@ actor IconManager {
     // MARK: - Disk Cache
 
     private func loadFromDiskCache(key: String) -> NSImage? {
+        // Check bundled icons first (shipped with the app)
+        if let bundledURL = bundledIconsDirectory?.appendingPathComponent("\(key).png"),
+           let data = try? Data(contentsOf: bundledURL),
+           let image = NSImage(data: data) {
+            return image
+        }
+
+        // Then check user cache
         let fileURL = cacheDirectory.appendingPathComponent("\(key).png")
         guard let data = try? Data(contentsOf: fileURL),
               let image = NSImage(data: data) else {
