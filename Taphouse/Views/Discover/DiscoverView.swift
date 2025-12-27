@@ -6,6 +6,8 @@ struct DiscoverView: View {
     @Environment(\.brewService) private var brewService
 
     @State private var isLoading = false
+    @State private var isPreparingView = true  // Shows loading while view renders
+    @State private var visibleCategoryCount = 0  // Progressive loading of categories
     @State private var packagesByCategory: [PackageCategory: [PopularPackage]] = [:]
     @State private var packageDescriptions: [String: String] = [:]
     @State private var installedPackages: Set<String> = []
@@ -81,9 +83,10 @@ struct DiscoverView: View {
     }
 
     private var allCategoriesGrid: some View {
-        ScrollView {
-            if isLoading {
-                LoadingView(message: "Loading popular packages...")
+        Group {
+            if isLoading || isPreparingView {
+                // Loading state - no content rendered yet
+                LoadingView(message: isLoading ? "Loading popular packages..." : "Preparing view...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let error {
                 EmptyStateView(
@@ -98,44 +101,65 @@ struct DiscoverView: View {
                     systemImage: "shippingbox"
                 )
             } else {
-                LazyVStack(alignment: .leading, spacing: 32) {
-                    // Header
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Discover")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        Text("Popular packages from Homebrew analytics")
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.bottom, 8)
+                // Main content - categories load progressively
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 32) {
+                        // Header
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Discover")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                            Text("Popular packages from Homebrew analytics")
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.bottom, 8)
 
-                    ForEach(categoryOrder) { category in
-                        if let packages = packagesByCategory[category], !packages.isEmpty {
-                            CategorySection(
-                                category: category,
-                                packages: packages,
-                                descriptions: packageDescriptions,
-                                installedPackages: installedPackages,
-                                installingPackage: installingPackage,
-                                onInstall: { package in
-                                    Task { await installPackage(package) }
-                                },
-                                onShowAll: {
-                                    selectedCategory = category
-                                },
-                                onLoadDescription: { package in
-                                    Task { await loadDescription(for: package) }
-                                }
-                            )
+                        // Show categories progressively
+                        ForEach(Array(categoryOrder.prefix(visibleCategoryCount).enumerated()), id: \.element) { _, category in
+                            if let packages = packagesByCategory[category], !packages.isEmpty {
+                                CategorySection(
+                                    category: category,
+                                    packages: packages,
+                                    descriptions: packageDescriptions,
+                                    installedPackages: installedPackages,
+                                    installingPackage: installingPackage,
+                                    onInstall: { package in
+                                        Task { await installPackage(package) }
+                                    },
+                                    onShowAll: {
+                                        selectedCategory = category
+                                    },
+                                    onLoadDescription: { package in
+                                        Task { await loadDescription(for: package) }
+                                    }
+                                )
+                            }
+                        }
+
+                        // Loading more indicator
+                        if visibleCategoryCount < categoryOrder.count {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                    .controlSize(.small)
+                                Text("Loading more...")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                            }
+                            .padding()
                         }
                     }
+                    .padding(24)
                 }
-                .padding(24)
+                .overlay(alignment: .top) {
+                    IconLoadingBanner()
+                        .padding(.top, 8)
+                }
+                .task {
+                    await loadCategoriesProgressively()
+                }
             }
-        }
-        .overlay(alignment: .top) {
-            IconLoadingBanner()
-                .padding(.top, 8)
         }
     }
 
@@ -204,6 +228,7 @@ struct DiscoverView: View {
 
     private func loadPopularPackages() async {
         isLoading = true
+        isPreparingView = true
         error = nil
 
         do {
@@ -229,6 +254,18 @@ struct DiscoverView: View {
         }
 
         isLoading = false
+        isPreparingView = false
+
+        // Start with first 2 categories visible
+        visibleCategoryCount = 2
+    }
+
+    private func loadCategoriesProgressively() async {
+        // Add remaining categories one at a time with small delay
+        while visibleCategoryCount < categoryOrder.count {
+            try? await Task.sleep(for: .milliseconds(150))
+            visibleCategoryCount += 1
+        }
     }
 
     private func loadDescription(for package: PopularPackage) async {
@@ -328,10 +365,10 @@ struct CategorySection: View {
                 .foregroundStyle(Color.accentColor)
             }
 
-            // Horizontal scroll of package cards
+            // Horizontal scroll of package cards (lazy for performance)
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(packages.prefix(6)) { package in
+                LazyHStack(spacing: 16) {
+                    ForEach(packages.prefix(4)) { package in
                         MediumPackageCard(
                             package: package,
                             description: descriptions[package.name],
