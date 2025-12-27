@@ -2,6 +2,28 @@ import Foundation
 import AppKit
 import SwiftUI
 
+/// Observable state for icon loading progress (MainActor for SwiftUI)
+@MainActor
+@Observable
+final class IconLoadingState {
+    static let shared = IconLoadingState()
+
+    private(set) var pendingCount: Int = 0
+    private(set) var isLoading: Bool = false
+
+    func increment() {
+        pendingCount += 1
+        isLoading = true
+    }
+
+    func decrement() {
+        pendingCount = max(0, pendingCount - 1)
+        if pendingCount == 0 {
+            isLoading = false
+        }
+    }
+}
+
 /// Manages app icon fetching from various sources with caching
 actor IconManager {
     static let shared = IconManager()
@@ -472,10 +494,12 @@ struct AppIconView: View {
     }
 
     private func loadIcon() async {
+        await MainActor.run { IconLoadingState.shared.increment() }
         let loadedIcon = await IconManager.shared.getIcon(for: packageName, isCask: isCask)
         await MainActor.run {
             self.icon = loadedIcon
             self.isLoading = false
+            IconLoadingState.shared.decrement()
         }
     }
 }
@@ -522,10 +546,34 @@ struct MASAppIconView: View {
     }
 
     private func loadIcon() async {
+        await MainActor.run { IconLoadingState.shared.increment() }
         let loadedIcon = await IconManager.shared.getMASIcon(appId: appId, appName: appName)
         await MainActor.run {
             self.icon = loadedIcon
             self.isLoading = false
+            IconLoadingState.shared.decrement()
+        }
+    }
+}
+
+/// A subtle banner showing icon loading progress
+struct IconLoadingBanner: View {
+    @State private var loadingState = IconLoadingState.shared
+
+    var body: some View {
+        if loadingState.isLoading {
+            HStack(spacing: 8) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Loading icons (\(loadingState.pendingCount))...")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(.ultraThinMaterial, in: Capsule())
+            .transition(.move(edge: .top).combined(with: .opacity))
+            .animation(.easeInOut(duration: 0.2), value: loadingState.isLoading)
         }
     }
 }

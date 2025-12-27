@@ -85,7 +85,7 @@ struct DiscoverView: View {
             if isLoading {
                 LoadingView(message: "Loading popular packages...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let error = error {
+            } else if let error {
                 EmptyStateView(
                     title: "Failed to Load",
                     message: error,
@@ -132,6 +132,10 @@ struct DiscoverView: View {
                 }
                 .padding(24)
             }
+        }
+        .overlay(alignment: .top) {
+            IconLoadingBanner()
+                .padding(.top, 8)
         }
     }
 
@@ -189,6 +193,10 @@ struct DiscoverView: View {
                 }
             }
             .padding(24)
+        }
+        .overlay(alignment: .top) {
+            IconLoadingBanner()
+                .padding(.top, 8)
         }
     }
 

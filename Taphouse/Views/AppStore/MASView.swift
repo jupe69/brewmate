@@ -57,6 +57,10 @@ struct MASView: View {
             }
         }
         .navigationTitle("App Store")
+        .overlay(alignment: .top) {
+            IconLoadingBanner()
+                .padding(.top, 8)
+        }
         .task {
             await loadMASApps()
         }
