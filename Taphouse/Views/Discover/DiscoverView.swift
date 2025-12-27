@@ -8,6 +8,7 @@ struct DiscoverView: View {
     @State private var isLoading = false
     @State private var packagesByCategory: [PackageCategory: [PopularPackage]] = [:]
     @State private var packageDescriptions: [String: String] = [:]
+    @State private var installedPackages: Set<String> = []
     @State private var selectedCategory: PackageCategory?
     @State private var installingPackage: String?
     @State private var error: String?
@@ -114,6 +115,7 @@ struct DiscoverView: View {
                                 category: category,
                                 packages: packages,
                                 descriptions: packageDescriptions,
+                                installedPackages: installedPackages,
                                 installingPackage: installingPackage,
                                 onInstall: { package in
                                     Task { await installPackage(package) }
@@ -171,6 +173,7 @@ struct DiscoverView: View {
                             LargePackageCard(
                                 package: package,
                                 description: packageDescriptions[package.name],
+                                isInstalled: installedPackages.contains(package.name),
                                 isInstalling: installingPackage == package.name,
                                 onInstall: {
                                     Task { await installPackage(package) }
@@ -196,7 +199,23 @@ struct DiscoverView: View {
         error = nil
 
         do {
-            packagesByCategory = try await brewService.getPopularPackagesByCategory()
+            // Load popular packages and installed packages in parallel
+            async let popularTask = brewService.getPopularPackagesByCategory()
+            async let formulaeTask = brewService.getInstalledFormulae()
+            async let casksTask = brewService.getInstalledCasks()
+
+            let (popular, formulae, casks) = try await (popularTask, formulaeTask, casksTask)
+            packagesByCategory = popular
+
+            // Build set of installed package names
+            var installed = Set<String>()
+            for formula in formulae {
+                installed.insert(formula.name)
+            }
+            for cask in casks {
+                installed.insert(cask.token)
+            }
+            installedPackages = installed
         } catch {
             self.error = error.localizedDescription
         }
@@ -231,6 +250,9 @@ struct DiscoverView: View {
 
         appState.isOperationInProgress = false
         installingPackage = nil
+
+        // Mark as installed after successful install
+        installedPackages.insert(package.name)
     }
 }
 
@@ -264,6 +286,7 @@ struct CategorySection: View {
     let category: PackageCategory
     let packages: [PopularPackage]
     let descriptions: [String: String]
+    let installedPackages: Set<String>
     let installingPackage: String?
     let onInstall: (PopularPackage) -> Void
     let onShowAll: () -> Void
@@ -304,6 +327,7 @@ struct CategorySection: View {
                         MediumPackageCard(
                             package: package,
                             description: descriptions[package.name],
+                            isInstalled: installedPackages.contains(package.name),
                             isInstalling: installingPackage == package.name,
                             onInstall: { onInstall(package) }
                         )
@@ -322,6 +346,7 @@ struct CategorySection: View {
 struct MediumPackageCard: View {
     let package: PopularPackage
     let description: String?
+    let isInstalled: Bool
     let isInstalling: Bool
     let onInstall: () -> Void
 
@@ -382,7 +407,11 @@ struct MediumPackageCard: View {
 
                 Spacer()
 
-                if isInstalling {
+                if isInstalled {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.green)
+                } else if isInstalling {
                     ProgressView()
                         .controlSize(.small)
                 } else {
@@ -412,6 +441,7 @@ struct MediumPackageCard: View {
 struct LargePackageCard: View {
     let package: PopularPackage
     let description: String?
+    let isInstalled: Bool
     let isInstalling: Bool
     let onInstall: () -> Void
 
@@ -464,8 +494,16 @@ struct LargePackageCard: View {
 
             Spacer()
 
-            // Install button
-            if isInstalling {
+            // Install button or installed indicator
+            if isInstalled {
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                    Text("Installed")
+                        .foregroundStyle(.secondary)
+                }
+                .font(.subheadline)
+            } else if isInstalling {
                 ProgressView()
                     .controlSize(.regular)
             } else {
