@@ -7,7 +7,7 @@ protocol BrewServiceProtocol: Sendable {
     func search(query: String) async throws -> SearchResults
     func getFormulaInfo(name: String) async throws -> Formula
     func getCaskInfo(name: String) async throws -> Cask
-    func install(packageName: String, isCask: Bool) async -> AsyncStream<String>
+    func install(packageName: String, isCask: Bool, adopt: Bool) async -> AsyncStream<String>
     func uninstall(packageName: String, isCask: Bool) async throws
     func upgrade(packageName: String?) async -> AsyncStream<String>
     func getOutdated() async throws -> [OutdatedPackage]
@@ -21,7 +21,7 @@ protocol BrewServiceProtocol: Sendable {
     func exportBrewfile() async throws -> String
     func importBrewfile(content: String) async -> AsyncStream<String>
     func importBrewfileFromPath(path: String) async -> AsyncStream<String>
-    func installMultiple(packages: [String], areCasks: Bool) async -> AsyncStream<String>
+    func installMultiple(packages: [String], areCasks: Bool, adopt: Bool) async -> AsyncStream<String>
     func uninstallMultiple(packages: [String], areCasks: Bool) async -> AsyncStream<String>
     func upgradeMultiple(packages: [String]) async -> AsyncStream<String>
     func getPinnedPackages() async throws -> [String]
@@ -216,8 +216,12 @@ actor BrewService: BrewServiceProtocol {
 
     // MARK: - Install / Uninstall
 
-    func install(packageName: String, isCask: Bool) async -> AsyncStream<String> {
-        let args = isCask ? ["install", "--cask", packageName] : ["install", packageName]
+    func install(packageName: String, isCask: Bool, adopt: Bool = false) async -> AsyncStream<String> {
+        var args = isCask ? ["install", "--cask"] : ["install"]
+        if adopt && isCask {
+            args.append("--adopt")
+        }
+        args.append(packageName)
         return await brewStream(args.joined(separator: " "))
     }
 
@@ -307,12 +311,12 @@ actor BrewService: BrewServiceProtocol {
 
     // MARK: - Bulk Operations
 
-    func installMultiple(packages: [String], areCasks: Bool) async -> AsyncStream<String> {
+    func installMultiple(packages: [String], areCasks: Bool, adopt: Bool) async -> AsyncStream<String> {
         return AsyncStream { continuation in
             Task {
                 for package in packages {
                     continuation.yield("==> Installing \(package)...")
-                    let stream = await self.install(packageName: package, isCask: areCasks)
+                    let stream = await self.install(packageName: package, isCask: areCasks, adopt: adopt)
                     for await line in stream {
                         continuation.yield(line)
                     }

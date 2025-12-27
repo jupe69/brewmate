@@ -289,7 +289,7 @@ struct DiscoverView: View {
         appState.isOperationInProgress = true
         appState.clearOperationOutput()
 
-        for await line in await brewService.install(packageName: package.name, isCask: package.isCask) {
+        for await line in await brewService.install(packageName: package.name, isCask: package.isCask, adopt: false) {
             appState.appendOperationOutput(line)
         }
 

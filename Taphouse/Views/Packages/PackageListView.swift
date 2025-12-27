@@ -580,7 +580,7 @@ struct PackageListView: View {
 
         // Install formulae first
         if !formulae.isEmpty {
-            let stream = await brewService.installMultiple(packages: formulae, areCasks: false)
+            let stream = await brewService.installMultiple(packages: formulae, areCasks: false, adopt: false)
             for await line in stream {
                 appState.appendOperationOutput(line)
             }
@@ -588,7 +588,7 @@ struct PackageListView: View {
 
         // Then install casks
         if !casks.isEmpty {
-            let stream = await brewService.installMultiple(packages: casks, areCasks: true)
+            let stream = await brewService.installMultiple(packages: casks, areCasks: true, adopt: false)
             for await line in stream {
                 appState.appendOperationOutput(line)
             }

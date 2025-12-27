@@ -292,7 +292,7 @@ struct SearchResultRow: View {
         appState.currentOperation = "Installing \(name)..."
         appState.clearOperationOutput()
 
-        let stream = await brewService.install(packageName: name, isCask: installAsCask)
+        let stream = await brewService.install(packageName: name, isCask: installAsCask, adopt: false)
         for await line in stream {
             appState.appendOperationOutput(line)
         }
@@ -345,6 +345,7 @@ struct SearchResultDetailView: View {
     @Environment(\.openURL) private var openURL
 
     @State private var isInstalling = false
+    @State private var adoptExisting = false
 
     var body: some View {
         Group {
@@ -460,18 +461,33 @@ struct SearchResultDetailView: View {
                 if !details.isInstalled {
                     Divider()
 
-                    Button {
-                        Task { await installPackage(details) }
-                    } label: {
-                        if isInstalling {
-                            ProgressView()
-                                .controlSize(.small)
-                        } else {
-                            Label("Install", systemImage: "arrow.down.circle")
+                    VStack(alignment: .leading, spacing: 12) {
+                        // Adopt toggle for casks only
+                        if details.isCask {
+                            Toggle(isOn: $adoptExisting) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Adopt existing app")
+                                        .font(.subheadline)
+                                    Text("Use if the app is already installed outside of Homebrew")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
                         }
+
+                        Button {
+                            Task { await installPackage(details) }
+                        } label: {
+                            if isInstalling {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Label("Install", systemImage: "arrow.down.circle")
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(isInstalling || appState.isOperationInProgress)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(isInstalling || appState.isOperationInProgress)
                 }
             }
             .padding(24)
@@ -484,7 +500,9 @@ struct SearchResultDetailView: View {
         appState.currentOperation = "Installing \(details.name)..."
         appState.clearOperationOutput()
 
-        let stream = await brewService.install(packageName: details.identifier, isCask: details.isCask)
+        // Use adopt flag for casks when toggle is enabled
+        let shouldAdopt = details.isCask && adoptExisting
+        let stream = await brewService.install(packageName: details.identifier, isCask: details.isCask, adopt: shouldAdopt)
         for await line in stream {
             appState.appendOperationOutput(line)
         }

@@ -43,6 +43,7 @@ Taphouse offers a **free version** with essential functionality, plus a **Pro up
 #### Package Management
 - **Browse Installed Packages** - View all installed formulae and casks in an organized list
 - **Search & Install** - Search Homebrew's entire catalog and install packages with one click
+- **Adopt Existing Apps** - When installing casks, optionally adopt apps already installed outside of Homebrew
 - **Uninstall Packages** - Remove packages with confirmation dialogs
 - **View Package Details** - See descriptions, versions, dependencies, and homepage links
 - **Dependency Detection** - Packages installed as dependencies are marked with a "dep" badge, distinguishing them from packages you explicitly installed
