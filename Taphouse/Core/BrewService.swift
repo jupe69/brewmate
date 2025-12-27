@@ -1116,25 +1116,86 @@ actor BrewService: BrewServiceProtocol {
     // MARK: - Discover (Analytics)
 
     /// Fetches popular packages from Homebrew analytics
+    /// Cache for popular packages (refreshes once per day)
+    private static var popularPackagesCache: [PopularPackage]?
+    private static var popularPackagesCacheDate: Date?
+    private static let cacheMaxAge: TimeInterval = 24 * 60 * 60 // 24 hours
+
     func getPopularPackages() async throws -> [PopularPackage] {
-        async let formulaeTask = fetchAnalytics(from: "https://formulae.brew.sh/api/analytics/install-on-request/30d.json", isCask: false)
-        async let casksTask = fetchAnalytics(from: "https://formulae.brew.sh/api/analytics/cask-install/30d.json", isCask: true)
+        // Check memory cache first
+        if let cached = Self.popularPackagesCache,
+           let cacheDate = Self.popularPackagesCacheDate,
+           Date().timeIntervalSince(cacheDate) < Self.cacheMaxAge {
+            return cached
+        }
+
+        // Load bundled data FIRST for instant display
+        let bundledFormulae = loadBundledAnalytics(isCask: false)
+        let bundledCasks = loadBundledAnalytics(isCask: true)
+
+        if !bundledFormulae.isEmpty || !bundledCasks.isEmpty {
+            let result = (bundledFormulae + bundledCasks).sorted { $0.installCount > $1.installCount }
+            Self.popularPackagesCache = result
+            Self.popularPackagesCacheDate = Date()
+
+            // Refresh from network in background (for next time)
+            Task.detached(priority: .background) {
+                await self.refreshAnalyticsFromNetwork()
+            }
+
+            return result
+        }
+
+        // No bundled data, must fetch from network
+        return try await fetchAnalyticsFromNetwork()
+    }
+
+    /// Load analytics from bundled JSON files (instant, no network)
+    private func loadBundledAnalytics(isCask: Bool) -> [PopularPackage] {
+        let bundledFileName = isCask ? "cask_analytics" : "formulae_analytics"
+        guard let bundledURL = Bundle.main.url(forResource: bundledFileName, withExtension: "json"),
+              let data = try? Data(contentsOf: bundledURL) else {
+            return []
+        }
+        return parseAnalytics(data: data, isCask: isCask)
+    }
+
+    /// Fetch fresh analytics from network
+    private func fetchAnalyticsFromNetwork() async throws -> [PopularPackage] {
+        async let formulaeTask = fetchFromURL("https://formulae.brew.sh/api/analytics/install-on-request/30d.json", isCask: false)
+        async let casksTask = fetchFromURL("https://formulae.brew.sh/api/analytics/cask-install/30d.json", isCask: true)
 
         let formulae = (try? await formulaeTask) ?? []
         let casks = (try? await casksTask) ?? []
 
-        // Combine and sort by install count
-        return (formulae + casks).sorted { $0.installCount > $1.installCount }
+        let result = (formulae + casks).sorted { $0.installCount > $1.installCount }
+
+        Self.popularPackagesCache = result
+        Self.popularPackagesCacheDate = Date()
+
+        return result
     }
 
-    /// Fetches analytics from Homebrew API
-    private func fetchAnalytics(from urlString: String, isCask: Bool) async throws -> [PopularPackage] {
-        guard let url = URL(string: urlString) else {
+    /// Background refresh of analytics
+    private func refreshAnalyticsFromNetwork() async {
+        _ = try? await fetchAnalyticsFromNetwork()
+    }
+
+    /// Fetch analytics from a specific URL
+    private func fetchFromURL(_ urlString: String, isCask: Bool) async throws -> [PopularPackage] {
+        guard let url = URL(string: urlString) else { return [] }
+
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 15
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return parseAnalytics(data: data, isCask: isCask)
+    }
+
+    private func parseAnalytics(data: Data, isCask: Bool) -> [PopularPackage] {
+        guard let response = try? JSONDecoder().decode(AnalyticsResponse.self, from: data) else {
             return []
         }
-
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let response = try JSONDecoder().decode(AnalyticsResponse.self, from: data)
 
         // Take top 100 packages
         return response.items.prefix(100).map { item in

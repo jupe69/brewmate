@@ -501,13 +501,15 @@ struct AppIconView: View {
                 .frame(width: size, height: size)
             }
         }
-        .task {
+        .task(priority: .background) {
+            // Small random delay to stagger requests and let UI render first
+            try? await Task.sleep(for: .milliseconds(.random(in: 10...100)))
             await loadIcon()
         }
     }
 
     private func loadIcon() async {
-        await MainActor.run { IconLoadingState.shared.increment() }
+        Task { @MainActor in IconLoadingState.shared.increment() }
         let loadedIcon = await IconManager.shared.getIcon(for: packageName, isCask: isCask)
         await MainActor.run {
             self.icon = loadedIcon
@@ -553,13 +555,15 @@ struct MASAppIconView: View {
                 .frame(width: size, height: size)
             }
         }
-        .task {
+        .task(priority: .background) {
+            // Small random delay to stagger requests and let UI render first
+            try? await Task.sleep(for: .milliseconds(.random(in: 10...100)))
             await loadIcon()
         }
     }
 
     private func loadIcon() async {
-        await MainActor.run { IconLoadingState.shared.increment() }
+        Task { @MainActor in IconLoadingState.shared.increment() }
         let loadedIcon = await IconManager.shared.getMASIcon(appId: appId, appName: appName)
         await MainActor.run {
             self.icon = loadedIcon
