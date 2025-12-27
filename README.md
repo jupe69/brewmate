@@ -32,7 +32,7 @@ Taphouse offers a **free version** with essential functionality, plus a **Pro up
 
 **14-day free trial** of all Pro features included.
 
-[Purchase Pro](https://multimodal.lemonsqueezy.com/checkout/buy/3697ac37-9b65-421e-9d29-0c9e5221ebc2)
+[Purchase Pro](https://multimodal.lemonsqueezy.com/checkout/buy/7483a6ae-cbc7-404e-ae41-6ef2e7108baf)
 
 ---
 

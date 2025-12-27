@@ -51,7 +51,7 @@ final class LicenseManager {
     private let apiBaseURL = "https://api.lemonsqueezy.com/v1/licenses"
 
     /// Purchase URL for Taphouse Pro
-    static let purchaseURL = URL(string: "https://multimodal.lemonsqueezy.com/checkout/buy/3697ac37-9b65-421e-9d29-0c9e5221ebc2")!
+    static let purchaseURL = URL(string: "https://multimodal.lemonsqueezy.com/checkout/buy/7483a6ae-cbc7-404e-ae41-6ef2e7108baf")!
 
     /// Trial duration in days
     private let trialDurationDays = 14
