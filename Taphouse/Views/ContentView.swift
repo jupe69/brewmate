@@ -285,48 +285,66 @@ struct ContentView: View {
                 await refreshFromSource(updateCache: true)
             }
         } else {
-            // No cache, load from source
-            await refreshFromSource(updateCache: true)
+            // No cache, load from source with retry logic for first-time users
+            await refreshFromSource(updateCache: true, isInitialLoad: true)
             appState.isLoading = false
         }
     }
 
-    private func refreshFromSource(updateCache: Bool) async {
-        do {
-            async let formulae = brewService.getInstalledFormulae()
-            async let casks = brewService.getInstalledCasks()
-            async let outdated = brewService.getOutdated()
-            async let pinned = brewService.getPinnedPackages()
-            async let leaves = brewService.getLeafPackages()
+    private func refreshFromSource(updateCache: Bool, isInitialLoad: Bool = false) async {
+        let maxRetries = isInitialLoad ? 3 : 1
+        var lastError: Error?
 
-            let loadedFormulae = try await formulae
-            let loadedCasks = try await casks
-            let loadedOutdated = try await outdated
+        for attempt in 1...maxRetries {
+            do {
+                async let formulae = brewService.getInstalledFormulae()
+                async let casks = brewService.getInstalledCasks()
+                async let outdated = brewService.getOutdated()
+                async let pinned = brewService.getPinnedPackages()
+                async let leaves = brewService.getLeafPackages()
 
-            appState.installedFormulae = loadedFormulae
-            appState.installedCasks = loadedCasks
-            appState.outdatedPackages = loadedOutdated
-            appState.pinnedPackages = Set(try await pinned)
-            appState.leafPackages = try await leaves
+                let loadedFormulae = try await formulae
+                let loadedCasks = try await casks
+                let loadedOutdated = try await outdated
 
-            // Update cache
-            if updateCache {
-                let cache = PackageCache.shared
-                await cache.cacheFormulae(loadedFormulae)
-                await cache.cacheCasks(loadedCasks)
-                await cache.cacheOutdated(loadedOutdated)
+                appState.installedFormulae = loadedFormulae
+                appState.installedCasks = loadedCasks
+                appState.outdatedPackages = loadedOutdated
+                appState.pinnedPackages = Set(try await pinned)
+                appState.leafPackages = try await leaves
+
+                // Update cache
+                if updateCache {
+                    let cache = PackageCache.shared
+                    await cache.cacheFormulae(loadedFormulae)
+                    await cache.cacheCasks(loadedCasks)
+                    await cache.cacheOutdated(loadedOutdated)
+                }
+
+                // Notify menu bar of updates
+                NotificationCenter.default.post(
+                    name: .packagesDidUpdate,
+                    object: nil,
+                    userInfo: ["outdatedPackages": appState.outdatedPackages]
+                )
+
+                // Update widget data
+                WidgetDataManager.shared.updateWidgetData(outdatedPackages: appState.outdatedPackages)
+
+                // Success - exit retry loop
+                return
+            } catch {
+                lastError = error
+
+                // On initial load, retry after delay (Homebrew may be updating its cache)
+                if isInitialLoad && attempt < maxRetries {
+                    try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 second delay
+                }
             }
+        }
 
-            // Notify menu bar of updates
-            NotificationCenter.default.post(
-                name: .packagesDidUpdate,
-                object: nil,
-                userInfo: ["outdatedPackages": appState.outdatedPackages]
-            )
-
-            // Update widget data
-            WidgetDataManager.shared.updateWidgetData(outdatedPackages: appState.outdatedPackages)
-        } catch {
+        // All retries failed - show error
+        if let error = lastError {
             appState.setError(.commandFailed(error.localizedDescription))
         }
     }

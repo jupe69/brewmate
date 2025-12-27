@@ -1,4 +1,27 @@
-# Reddit Post for r/macapps
+
+ Title:
+  Show HN: Taphouse – A native macOS GUI for Homebrew
+
+  Body:
+  I built a SwiftUI app to manage Homebrew packages visually. Pure native, ~15MB, no Electron.
+
+  Core features:
+  - Package management (search, install, uninstall, upgrade)
+  - Services dashboard (start/stop/restart brew services, auto-refresh)
+  - Taps management
+  - Brewfile import/export
+  - Diagnostics (brew doctor, disk usage, cleanup)
+  - Mac App Store integration via mas CLI
+
+  The Services view was the main thing I wanted - I run PostgreSQL, Redis, and nginx through Homebrew and got tired of typing `brew services list`. Now I can see status at a glance and control everything with one click.
+
+  Also added mas integration, which I haven't seen in other Homebrew GUIs. If you use `brew install mas`, Taphouse can manage App Store apps too - unified package management.
+
+  Free version covers basics. Pro is $4.99 one-time for bulk operations, menu bar icon, auto-updates, etc.
+
+  Built with SwiftUI, targets macOS 14+. First Swift project after years away from coding (was in management). Would appreciate any feedback.
+
+  https://taphouse.multimodalsolutions.gr# Reddit Post for r/macapps
 
 **Title:** I built a native Homebrew GUI because the existing options frustrated me
 
